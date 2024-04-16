@@ -1,13 +1,11 @@
 from fastapi import FastAPI
+from .auth.router import auth
+from .common.router import common
+
 
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(auth, prefix="/auth", tags=["auth"])
+app.include_router(common, prefix="", tags=["common"])
 
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
