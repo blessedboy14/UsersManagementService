@@ -1,8 +1,7 @@
 import uuid
 import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
-from pydantic import EmailStr
 from enum import Enum
 
 
@@ -11,23 +10,31 @@ class RoleEnum(str, Enum):
     MODERATOR = "moderator"
     USER = "user"
 
+    class Config:
+        from_attributes = True
+
 
 class Group(BaseModel):
 
     id: uuid.UUID
     name: str
-    created: datetime.date
+    created: datetime.datetime
+
+    class Config:
+        from_attributes = True
 
 
 class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    name: str
-    surname: str
-    username: str
-    hashed_password: str
-    phone_number: str
+    name: Optional[str] = Field("John", min_length=3, max_length=128)
+    surname: Optional[str] = Field("Doe", min_length=3, max_length=128)
+    username: str = Field(min_length=3, max_length=128)
+    phone: str = Field(min_length=13, max_length=13)
     email: EmailStr
-    role: RoleEnum = RoleEnum.USER
-    group: Optional[Group] = None
-
+    role: Optional[RoleEnum] = RoleEnum.USER
+    group: list[Group] = Field(min_items=1)
+    image: Optional[str] = "s3://bucket-name/path/to/file"
+    is_blocked: bool = False
+    hashed_password: str
