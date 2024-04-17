@@ -4,6 +4,8 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+PhoneNumber.phone_format = 'E164'
+
 
 class AuthUser(BaseModel):
     email: EmailStr = Field(default="example@example.com")
@@ -22,6 +24,13 @@ class UserIn(AuthUser):
 
 class UserInDB(AuthUser):
     hashed_password: str
+
+
+class ResponseModel(BaseModel):
+    message: str
+    access_token: str
+    refresh_token: str
+    type:   str
 
 
 class Token(BaseModel):

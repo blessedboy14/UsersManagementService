@@ -1,13 +1,15 @@
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from datetime import timedelta, datetime
 
 from src.auth.models import UserIn, UserInDB
 
 
-SECRET_KEY = "qemnk5lu6z1bdbedgin85zhi47cgvu6lqokab9lilx49odbbpvdflbrlhq15nbk7"
+SECRET_KEY = "68d5b14da586a1cf8609325abc54a3da88c410e828307e3eded230a58a2a3d8e"
 ALGORITHM = "HS256"
-TOKEN_EXPIRE_MINUTES = 120
+ACCESS_EXP = timedelta(days=1)
+REFRESH_EXP = timedelta(days=31)
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -32,3 +34,22 @@ def hash_model(user: UserIn) -> UserInDB:
     )
 
 
+def create_access_jwt(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + ACCESS_EXP
+    to_encode.update({"exp": expire})
+    to_encode.update({"mode": "access_token"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_jwt(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + REFRESH_EXP
+    to_encode.update({"exp": expire})
+    to_encode.update({"mode": "refresh_token"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
+    return encoded_jwt
