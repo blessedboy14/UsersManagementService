@@ -1,4 +1,5 @@
 from src.users.models import User
+from src.auth.models import AuthUser, UserInDB
 from src.database.models import UserDB
 
 
@@ -14,4 +15,14 @@ def convert_IN_to_DB_model(user: User) -> UserDB:
         phone=user.phone,
         hashed_password=user.hashed_password,
         is_blocked=user.is_blocked,
+    )
+
+
+def convert_AUTH_to_DB(user: UserInDB) -> UserDB:
+
+    return UserDB(
+        username=user.username,
+        phone=user.phone,
+        email=user.email,
+        hashed_password=user.hashed_password
     )

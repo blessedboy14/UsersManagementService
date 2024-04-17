@@ -1,6 +1,6 @@
 import datetime
-from typing import Optional
-from sqlalchemy import DateTime, String
+from typing import Optional, List
+from sqlalchemy import DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -13,26 +13,25 @@ class UserDB(Base):
 
     email: Mapped[str] = mapped_column(String(60), unique=True)
     username: Mapped[str] = mapped_column(String(60), unique=True)
-    phone: Mapped[str] = mapped_column(String(15), unique=True)
-    name: Mapped[Optional[str]]
+    phone: Mapped[str] = mapped_column(String(26), unique=True)
+    name: Mapped[Optional[str]] = mapped_column(default="John")
     hashed_password: Mapped[str]
-    surname: Mapped[Optional[str]]
-    role: Mapped[RoleEnum] = relationship("Role", back_populates="users")
-    group: Mapped[list["Group"]] = relationship("Group", back_populates="users")
-    image: Mapped[str] = mapped_column(String(60), unique=True)
-    is_blocked: Mapped[bool]
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    modified_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-class Role(Base):
-    __tablename__ = 'roles'
-    name: Mapped[RoleEnum]
+    surname: Mapped[Optional[str]] = mapped_column(default="Doe")
+    role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.USER)
+    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), default="869bd587-f1a7-4e42-88d4-86713f64f308")
+    group: Mapped["Group"] = relationship("Group", back_populates="users", lazy=False)
+    image: Mapped[str] = mapped_column(String(64), default="/static/img/user.png")
+    is_blocked: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(),
+                                                          default=datetime.datetime.utcnow)
+    modified_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(),
+                                                           default=datetime.datetime.utcnow)
 
 
 class Group(Base):
     __tablename__ = 'groups'
 
+    users: Mapped[List[UserDB]] = relationship()
     name: Mapped[str]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

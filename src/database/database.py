@@ -1,7 +1,7 @@
 import uuid
 import contextlib
 from typing import Any, AsyncIterator
-from ..config.settings import url
+from src.config.settings import string_url
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncConnection,
@@ -12,8 +12,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class DatabaseSessionMaker:
-    def __init__(self, url: str, kwargs: dict[str, Any]):
-        self._engine = create_async_engine(url, **kwargs)
+    def __init__(self, urlPath: str, kwargs: dict[str, Any]):
+        self._engine = create_async_engine(urlPath, **kwargs)
         self._sessionmaker = async_sessionmaker(bind=self._engine)
 
     async def close(self):
@@ -54,7 +54,7 @@ class DatabaseSessionMaker:
         return self._engine
 
 
-session_manager = DatabaseSessionMaker(url, {})
+session_manager = DatabaseSessionMaker(string_url, {})
 
 
 async def get_session():

@@ -3,7 +3,7 @@ import contextlib
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-from src.auth.router import auth
+from src.auth import auth
 from src.common.router import common
 from src.users.router import users_router
 from src.database.database import session_manager
@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-app.include_router(auth, prefix="/auth", tags=["auth"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(common, prefix="", tags=["common"])
 app.include_router(users_router, prefix="/users", tags=["users"])
 
