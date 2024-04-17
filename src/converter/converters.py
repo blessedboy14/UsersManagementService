@@ -15,6 +15,8 @@ def convert_IN_to_DB_model(user: User) -> UserDB:
         phone=user.phone,
         hashed_password=user.hashed_password,
         is_blocked=user.is_blocked,
+        created_at=user.created_at,
+        modified_at=user.modified_at,
     )
 
 

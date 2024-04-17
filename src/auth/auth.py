@@ -1,20 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.auth.models import UserIn, AuthUser, LoginUser
-from src.dependencies.core import DBSession
-from src.auth.service import create_user, login_user
+from src.dependencies.core import DBSession, Redis
+from src.auth.service import create_user, login_user, refresh
 
 
 router = APIRouter()
 
 
 @router.post("/login")
-async def login(session: DBSession, user: LoginUser):
+async def login(session: DBSession, user: LoginUser, redis: Redis):
     if user.login is None:
         raise HTTPException(status_code=401, detail="Please provide phone, email or username")
-    return await login_user(user, session)
+    return await login_user(user, session, redis)
 
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
@@ -39,6 +39,9 @@ async def reset_password():
 
 
 @router.post("/refresh-token")
-async def refresh_token():
-    pass
+async def refresh_token(refresh_tkn: str, redis: Redis):
+    is_valid = await refresh(refresh_tkn, redis)
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    return is_valid
 

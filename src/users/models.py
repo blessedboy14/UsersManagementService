@@ -34,7 +34,9 @@ class User(BaseModel):
     phone: str = Field(min_length=13, max_length=13)
     email: EmailStr
     role: Optional[RoleEnum] = RoleEnum.USER
-    group: list[Group] = Field(min_items=1)
+    group_id: uuid.UUID
     image: Optional[str] = "s3://bucket-name/path/to/file"
     is_blocked: bool = False
     hashed_password: str
+    created_at: datetime.datetime
+    modified_at: datetime.datetime

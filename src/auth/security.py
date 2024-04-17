@@ -1,9 +1,11 @@
 from jose import jwt, JWTError
+from fastapi import HTTPException
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
 from src.auth.models import UserIn, UserInDB
+from src.dependencies.core import Redis
 
 
 SECRET_KEY = "68d5b14da586a1cf8609325abc54a3da88c410e828307e3eded230a58a2a3d8e"
@@ -53,3 +55,11 @@ def create_refresh_jwt(data: dict):
     to_encode.update({"mode": "refresh_token"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
     return encoded_jwt
+
+
+async def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        return payload
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
