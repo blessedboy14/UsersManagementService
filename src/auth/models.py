@@ -13,6 +13,10 @@ class AuthUser(BaseModel):
     phone: PhoneNumber = Field(default="+375291234567")
 
 
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr = Field(min_length=3, max_length=128)
+
+
 class LoginUser(BaseModel):
     login: str = Field(min_length=3, max_length=128)
     password: str = Field(min_length=8, max_length=128)

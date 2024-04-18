@@ -37,7 +37,7 @@ async def get_current_user(
     return user
 
 
-async def patch_user(user_data: User, db_session: DBSession):
+async def _patch_user(user_data: User, db_session: DBSession):
     try:
         await update_user(convert_IN_to_DB_model(user_data), db_session)
         await db_session.commit()
@@ -60,7 +60,7 @@ async def update_user_me(updated_user: UserPatch,
                          session: DBSession):
     updated_data = updated_user.model_dump(exclude_unset=True)
     updated_item = cur_user.copy(update=updated_data)
-    return (await patch_user(updated_item, session))
+    return await _patch_user(updated_item, session)
 
 
 @router.delete("/me", summary="Delete user")
@@ -101,5 +101,38 @@ async def patch_user(updated_user: UserPatch, user_id: str,
                             detail="User not found")
     updated_data = updated_user.model_dump(exclude_unset=True)
     patched_user = to_update.copy(update=updated_data)
-    return await patch_user(patched_user, session)
+    return await _patch_user(patched_user, session)
 
+
+def _filter_users(users: list[User], page: int = 1, limit: int = 30,
+                  filter_by_name: str = "", sort_by: str = "username", order_by: str = "desc"):
+    page -= 1
+    start = page * limit
+    to_filter = users[start: start + limit]
+    try:
+        filtered = list(filter(lambda u:
+                               filter_by_name.lower() in u.name.lower() or
+                               filter_by_name.lower() in u.surname.lower(), to_filter))
+        filtered = sorted(filtered,
+                          key=lambda u: getattr(u, sort_by), reverse=True if order_by == "desc" else False
+                          )
+        return filtered
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid filtration params")
+
+
+@router.get("/", response_model=list[User])
+async def list_users(cur_user: Annotated[User, Depends(get_current_user)],
+                     session: DBSession,
+                     page: int = 1, limit: int = 30, filter_by_name: str = "",
+                     sort_by: str = "username", order_by: str = "desc"):
+    if cur_user.role is RoleEnum.USER:
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
+    if cur_user.role is RoleEnum.MODERATOR:
+        moderator_group = await get_cur_user_group(cur_user.group_id, session)
+        return _filter_users(moderator_group.users, page, limit, filter_by_name, sort_by,
+                             order_by)
+    if cur_user.role is RoleEnum.ADMIN:
+        all_users = await get_all_users(session)
+        return _filter_users(all_users, page, limit, filter_by_name, sort_by,
+                             order_by)

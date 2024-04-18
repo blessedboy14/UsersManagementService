@@ -1,11 +1,15 @@
+import json
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from src.auth.models import UserIn, AuthUser, LoginUser, TokenSchema
+from src.auth.models import UserIn, AuthUser, LoginUser, TokenSchema, ResetPasswordRequest
 from src.dependencies.core import DBSession, Redis
 from src.auth.service import create_user, login_user, refresh
+from src.rabbitmq.publisher import publisher
 
 
 router = APIRouter()
@@ -52,6 +56,8 @@ async def refresh_token(refresh_tkn: str, redis: Redis):
 
 
 @router.post("/reset-password")
-async def reset_password():
-    pass
+async def reset_password(request: ResetPasswordRequest):
+    message = {"email": request.email, "link": "some.url",
+               "publish_time": json.dumps(datetime.utcnow().isoformat())}
+    publisher.publish_message(message)
 
