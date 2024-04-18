@@ -5,12 +5,13 @@ from src.database.models import UserDB
 
 def convert_IN_to_DB_model(user: User) -> UserDB:
     return UserDB(
+        id=user.id,
         username=user.username,
         email=user.email,
         name=user.name,
         surname=user.surname,
         image=user.image,
-        group=user.group,
+        group_id=user.group_id.hex,
         role=user.role,
         phone=user.phone,
         hashed_password=user.hashed_password,

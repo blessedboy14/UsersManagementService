@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import LoginUser, UserIn, ResponseModel
+from src.auth.models import LoginUser, UserIn, TokenSchema
 from src.auth.security import (
     verify_password, hash_model, create_access_jwt, create_refresh_jwt, oauth2_scheme,
     decode_token
@@ -20,12 +20,6 @@ async def create_user(user: UserIn, db_session: AsyncSession):
     return hashed_user
 
 
-def _verify_field_matching(db_model: UserDB, user: LoginUser) -> bool:
-    return (db_model.username == user.username
-            and db_model.email == user.email
-            and db_model.phone == user.phone)
-
-
 async def login_user(userIn: LoginUser, db_session: AsyncSession, redis: Redis):
     db_model = (await get_user(userIn, db_session))
     if db_model is not None:
@@ -36,7 +30,7 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession, redis: Redis):
             # create refresh token
             refresh_token = create_refresh_jwt(data)
             await redis.set(refresh_token, db_model.id.hex)
-            return ResponseModel(
+            return TokenSchema(
                 message='Logged in successfully',
                 access_token=access_token,
                 refresh_token=refresh_token,
@@ -69,7 +63,7 @@ async def refresh(token: str, redis: Redis):
     # create refresh token
     refresh_token = create_refresh_jwt(data)
     await redis.set(refresh_token, user_id)
-    return ResponseModel(
+    return TokenSchema(
         message='Refresh token changed',
         access_token=access_token,
         refresh_token=refresh_token,
@@ -79,3 +73,5 @@ async def refresh(token: str, redis: Redis):
 
 async def blacklist_token(token: str, redis: Redis):
     await redis.set(token, "blacklisted")
+
+

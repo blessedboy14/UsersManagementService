@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from src.auth.models import UserIn, AuthUser, LoginUser
+from src.auth.models import UserIn, AuthUser, LoginUser, TokenSchema
 from src.dependencies.core import DBSession, Redis
 from src.auth.service import create_user, login_user, refresh
 
@@ -10,10 +11,19 @@ from src.auth.service import create_user, login_user, refresh
 router = APIRouter()
 
 
-@router.post("/login")
-async def login(session: DBSession, user: LoginUser, redis: Redis):
-    if user.login is None:
+# @router.post("/login")
+# async def login(session: DBSession, user: LoginUser, redis: Redis):
+#     if user.login is None:
+#         raise HTTPException(status_code=401, detail="Please provide phone, email or username")
+#     return await login_user(user, session, redis)
+
+
+@router.post("/login", response_model=TokenSchema)
+async def login(session: DBSession, redis: Redis,
+                form_data: OAuth2PasswordRequestForm = Depends()):
+    if form_data.username is None:
         raise HTTPException(status_code=401, detail="Please provide phone, email or username")
+    user = LoginUser(login=form_data.username, password=form_data.password)
     return await login_user(user, session, redis)
 
 
@@ -33,15 +43,15 @@ async def signup(userIn: UserIn, session: DBSession):
         await session.close()
 
 
-@router.post("/reset-password")
-async def reset_password():
-    pass
-
-
 @router.post("/refresh-token")
 async def refresh_token(refresh_tkn: str, redis: Redis):
     is_valid = await refresh(refresh_tkn, redis)
     if not is_valid:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     return is_valid
+
+
+@router.post("/reset-password")
+async def reset_password():
+    pass
 

@@ -14,7 +14,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class DatabaseSessionMaker:
     def __init__(self, urlPath: str, kwargs: dict[str, Any]):
         self._engine = create_async_engine(urlPath, **kwargs)
-        self._sessionmaker = async_sessionmaker(bind=self._engine)
+        self._sessionmaker = async_sessionmaker(bind=self._engine, expire_on_commit=False)
 
     async def close(self):
         if self._engine is None:

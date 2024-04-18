@@ -18,14 +18,15 @@ class UserDB(Base):
     hashed_password: Mapped[str]
     surname: Mapped[Optional[str]] = mapped_column(default="Doe")
     role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.USER)
-    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), default="869bd587-f1a7-4e42-88d4-86713f64f308")
+    group_id: Mapped[str] = mapped_column(ForeignKey('groups.id'), default="d9a83fd7-c45f-4c78-84eb-0922d6a5eec0")
     group: Mapped["Group"] = relationship("Group", back_populates="users", lazy=False)
     image: Mapped[str] = mapped_column(String(64), default="/static/img/user.png")
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(),
                                                           default=datetime.datetime.utcnow)
     modified_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(),
-                                                           default=datetime.datetime.utcnow)
+                                                           default=datetime.datetime.utcnow,
+                                                           onupdate=func.current_timestamp())
 
 
 class Group(Base):

@@ -26,17 +26,9 @@ class UserInDB(AuthUser):
     hashed_password: str
 
 
-class ResponseModel(BaseModel):
+class TokenSchema(BaseModel):
     message: str
     access_token: str
     refresh_token: str
     type:   str
 
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    id: uuid.UUID | None = None
