@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter
 
 common = APIRouter()
 
 
-@common.get("/health_check")
+@common.get("/health_check", summary="Check Server Work")
 async def health_check():
     return {"status": "ready"}

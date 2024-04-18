@@ -1,10 +1,11 @@
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import jwt, JWTError
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.users.models import User, UserPatch, RoleEnum
+from src.users.models import User, UserPatch, RoleEnum, UserBase
 from src.auth.security import SECRET_KEY, ALGORITHM, oauth2_scheme
 from src.users.service import (get_user,
                                update_user, delete_user,
@@ -14,26 +15,31 @@ from src.converter.converters import convert_IN_to_DB_model
 
 router = APIRouter()
 
-credential_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
+
+def raise_credential_exception(message: str):
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=message,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def get_current_user(
         access_token: Annotated[str, Depends(oauth2_scheme)],
         session: DBSession):
+    user_id = None
     try:
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        if datetime.fromtimestamp(payload['exp']) < datetime.now():
+            raise_credential_exception("Token expired")
         user_id = payload.get('user_id')
         if user_id is None:
-            raise credential_exception
+            raise_credential_exception("Token invalid")
     except JWTError:
-        raise credential_exception
+        raise_credential_exception("Token invalid")
     user = await get_user(user_id, session)
     if user is None:
-        raise credential_exception
+        raise_credential_exception("Token invalid")
     return user
 
 
@@ -49,12 +55,12 @@ async def _patch_user(user_data: User, db_session: DBSession):
         await db_session.close()
 
 
-@router.get("/me", response_model=User, summary="get current user info")
+@router.get("/me", response_model=UserBase, summary="Get Yourself")
 async def read_users_me(cur_user: Annotated[User, Depends(get_current_user)]):
     return cur_user
 
 
-@router.patch("/me", response_model=User)
+@router.patch("/me", response_model=UserBase, summary="Patch Yourself")
 async def update_user_me(updated_user: UserPatch,
                          cur_user: Annotated[User, Depends(get_current_user)],
                          session: DBSession):
@@ -63,7 +69,7 @@ async def update_user_me(updated_user: UserPatch,
     return await _patch_user(updated_item, session)
 
 
-@router.delete("/me", summary="Delete user")
+@router.delete("/me", summary="Delete Me")
 async def delete_me(cur_user: Annotated[User, Depends(get_current_user)],
                     session: DBSession):
     await delete_user(cur_user.id, session)
@@ -71,7 +77,7 @@ async def delete_me(cur_user: Annotated[User, Depends(get_current_user)],
     return {"message": "User deleted", "data": None}
 
 
-@router.get("/{user_id}", summary="Get all users", response_model=list[User])
+@router.get("/{user_id}", summary="Get User By Id", response_model=list[UserBase])
 async def get_users(cur_user: Annotated[User, Depends(get_current_user)],
                     session: DBSession,
                     user_id: str):
@@ -88,7 +94,7 @@ async def get_users(cur_user: Annotated[User, Depends(get_current_user)],
         return [user for user in all_users if str(user.id) == user_id]
 
 
-@router.patch("/{user_id}", response_model=User)
+@router.patch("/{user_id}", response_model=UserBase, summary="Patch User As Admin")
 async def patch_user(updated_user: UserPatch, user_id: str,
                      cur_user: Annotated[User, Depends(get_current_user)],
                      session: DBSession):
@@ -117,11 +123,11 @@ def _filter_users(users: list[User], page: int = 1, limit: int = 30,
                           key=lambda u: getattr(u, sort_by), reverse=True if order_by == "desc" else False
                           )
         return filtered
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid filtration params")
 
 
-@router.get("/", response_model=list[User])
+@router.get("/", response_model=list[UserBase], summary="List Users")
 async def list_users(cur_user: Annotated[User, Depends(get_current_user)],
                      session: DBSession,
                      page: int = 1, limit: int = 30, filter_by_name: str = "",

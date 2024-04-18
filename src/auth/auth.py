@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from starlette.requests import Request
 
 from src.auth.models import UserIn, AuthUser, LoginUser, TokenSchema, ResetPasswordRequest
 from src.dependencies.core import DBSession, Redis
@@ -22,8 +23,8 @@ router = APIRouter()
 #     return await login_user(user, session, redis)
 
 
-@router.post("/login", response_model=TokenSchema)
-async def login(session: DBSession, redis: Redis,
+@router.post("/login", response_model=TokenSchema, summary="Login")
+async def login(request: Request, session: DBSession, redis: Redis,
                 form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username is None:
         raise HTTPException(status_code=401, detail="Please provide phone, email or username")
@@ -31,7 +32,7 @@ async def login(session: DBSession, redis: Redis,
     return await login_user(user, session, redis)
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/signup", status_code=status.HTTP_201_CREATED, summary="Sign Up")
 async def signup(userIn: UserIn, session: DBSession):
     try:
         hashed_user = await create_user(userIn, session)
@@ -47,7 +48,7 @@ async def signup(userIn: UserIn, session: DBSession):
         await session.close()
 
 
-@router.post("/refresh-token")
+@router.post("/refresh-token", summary="Refresh Both Tokens")
 async def refresh_token(refresh_tkn: str, redis: Redis):
     is_valid = await refresh(refresh_tkn, redis)
     if not is_valid:
@@ -55,9 +56,10 @@ async def refresh_token(refresh_tkn: str, redis: Redis):
     return is_valid
 
 
-@router.post("/reset-password")
+@router.post("/reset-password", summary="Reset Your Password")
 async def reset_password(request: ResetPasswordRequest):
     message = {"email": request.email, "link": "some.url",
                "publish_time": json.dumps(datetime.utcnow().isoformat())}
     publisher.publish_message(message)
+    return {"message": "message for resetting sent to rabbitmq"}
 

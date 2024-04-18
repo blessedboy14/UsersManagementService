@@ -23,7 +23,7 @@ class Group(BaseModel):
     created: datetime.datetime
 
 
-class User(BaseModel):
+class UserBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
@@ -36,9 +36,12 @@ class User(BaseModel):
     group_id: uuid.UUID
     image: Optional[str] = None
     is_blocked: bool = False
-    hashed_password: str
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
     modified_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
+
+
+class User(UserBase):
+    hashed_password: str
 
 
 class UserPatch(BaseModel):
