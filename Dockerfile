@@ -1,14 +1,22 @@
-FROM python:3.10.12
+FROM python:3.10.12-alpine3.18 as requirements-stage
 
 RUN mkdir /backend
 WORKDIR /backend
 
-RUN apt update
+RUN pip install poetry
 
-COPY requirements.txt ./
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+COPY ./pyproject.toml ./poetry.lock* /backend/
 
-COPY . .
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-CMD [ "python3", "-m", "uvicorn", "src.main:app", "--reload" ]
+FROM python:3.10.12-alpine3.18
+
+WORKDIR /code
+
+COPY --from=requirements-stage /backend/requirements.txt /code/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+COPY ./src /code/src
+
+CMD [ "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080" ]

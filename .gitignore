@@ -1,5 +1,3 @@
-/aws
-/aws/*
 
 /.venv
 /.venv/*
@@ -7,3 +5,7 @@
 __pycache__/
 
 /rabbitmq/
+
+.env
+aws/
+volume/

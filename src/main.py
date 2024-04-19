@@ -1,6 +1,7 @@
 import contextlib
 
 import aioredis
+import uvicorn
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 

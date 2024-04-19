@@ -1,9 +1,10 @@
 import json
 import pika
+from src.config.settings import settings
 
 
-conf = {'host': 'localhost', 'port': '5672', 'q_name': "reset-password-stream",
-        'login': 'blessedboy', 'password': 'ewkere123'}
+conf = {'host': settings.rabbit_host, 'port': '5672', 'q_name': "reset-password-stream",
+        'login': settings.username, 'password': settings.passw}
 
 
 class Publisher:

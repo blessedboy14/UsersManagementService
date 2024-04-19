@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=TokenSchema, summary="Login")
-async def login(request: Request, session: DBSession, redis: Redis,
+async def login(session: DBSession, redis: Redis,
                 form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username is None:
         raise HTTPException(status_code=401, detail="Please provide phone, email or username")

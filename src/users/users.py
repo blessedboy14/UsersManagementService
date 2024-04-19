@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from jose import jwt, JWTError
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.users.models import User, UserPatch, RoleEnum, UserBase
+from src.users.models import User, UserPatch, RoleEnum, UserBase, AdminPatch
 from src.auth.security import SECRET_KEY, ALGORITHM, oauth2_scheme
 from src.users.service import (get_user,
                                update_user, delete_user,
@@ -95,7 +95,7 @@ async def get_users(cur_user: Annotated[User, Depends(get_current_user)],
 
 
 @router.patch("/{user_id}", response_model=UserBase, summary="Patch User As Admin")
-async def patch_user(updated_user: UserPatch, user_id: str,
+async def patch_user(updated_user: AdminPatch, user_id: str,
                      cur_user: Annotated[User, Depends(get_current_user)],
                      session: DBSession):
     if cur_user.role is not RoleEnum.ADMIN:
