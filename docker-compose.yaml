@@ -51,4 +51,9 @@ services:
       - POSTGRES_HOST=db
       - REDIS_HOST=cache
       - RABBITMQ_HOST=rabbitmq_manage
+      - LOCALSTACK_HOST=localstack
+    depends_on:
+      - localstack
+      - cache
+      - rabbitmq_manage
 

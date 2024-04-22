@@ -1,7 +1,4 @@
 import contextlib
-
-import aioredis
-import uvicorn
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
@@ -12,7 +9,7 @@ from src.database.database import session_manager
 
 
 @contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(my_app: FastAPI):
 
     yield
 
@@ -21,8 +18,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(common, prefix="", tags=["common"])
 app.include_router(users.router, prefix="/users", tags=["users"])

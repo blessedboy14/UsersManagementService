@@ -1,16 +1,19 @@
+import io
+import uuid
 from datetime import datetime
 from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, status
+import magic
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from jose import jwt, JWTError
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.users.models import User, UserPatch, RoleEnum, UserBase, AdminPatch
 from src.auth.security import SECRET_KEY, ALGORITHM, oauth2_scheme
-from src.users.service import (get_user,
+from src.users.service import (get_user, upload_to_s3_bucket,
                                update_user, delete_user,
                                get_cur_user_group, get_all_users)
 from src.dependencies.core import DBSession
+from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES
 from src.converter.converters import convert_IN_to_DB_model
 
 router = APIRouter()
@@ -35,7 +38,7 @@ async def get_current_user(
         user_id = payload.get('user_id')
         if user_id is None:
             raise_credential_exception("Token invalid")
-    except JWTError:
+    except JWTError as e:
         raise_credential_exception("Token invalid")
     user = await get_user(user_id, session)
     if user is None:
@@ -127,7 +130,7 @@ def _filter_users(users: list[User], page: int = 1, limit: int = 30,
         raise HTTPException(status_code=400, detail="Invalid filtration params")
 
 
-@router.get("/", response_model=list[UserBase], summary="List Users")
+@router.get("", response_model=list[UserBase], summary="List Users")
 async def list_users(cur_user: Annotated[User, Depends(get_current_user)],
                      session: DBSession,
                      page: int = 1, limit: int = 30, filter_by_name: str = "",
@@ -142,3 +145,31 @@ async def list_users(cur_user: Annotated[User, Depends(get_current_user)],
         all_users = await get_all_users(session)
         return _filter_users(all_users, page, limit, filter_by_name, sort_by,
                              order_by)
+
+
+def raise_upload_exception(msg: str):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=msg)
+
+
+@router.post("/me/upload_image", summary="Upload Image")
+async def upload_avatar_image(cur_user: Annotated[User, Depends(get_current_user)],
+                              session: DBSession,
+                              file: UploadFile):
+    if not file:
+        raise_upload_exception("File not presented")
+
+    file_bytes = await file.read()
+    file_size = len(file_bytes)
+    if file_size < 1 or file_size > MAX_FILE_SIZE:
+        raise_upload_exception("File size is too big")
+
+    file_type = magic.from_buffer(file_bytes, mime=True)
+    if file_type not in SUPPORTED_TYPES:
+        raise_upload_exception(f"Unsupported file type {file_type}. Supported types: {SUPPORTED_TYPES}")
+    s3_filename = await upload_to_s3_bucket(io.BytesIO(file_bytes),
+                                            f"{cur_user.username}/{uuid.uuid4()}.{SUPPORTED_TYPES[file_type]}")
+    to_update = {'image': s3_filename}
+    updated_item = cur_user.copy(update=to_update)
+    await _patch_user(updated_item, session)
+    return {"image": s3_filename, "status": "uploaded"}

@@ -1,5 +1,5 @@
 from src.users.models import User
-from src.auth.models import AuthUser, UserInDB
+from src.auth.models import UserInDB
 from src.database.models import UserDB
 
 

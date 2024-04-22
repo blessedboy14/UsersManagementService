@@ -1,11 +1,11 @@
 from aioredis import Redis
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import LoginUser, UserIn, TokenSchema
 from src.auth.security import (
-    verify_password, hash_model, create_access_jwt, create_refresh_jwt, oauth2_scheme,
+    verify_password, hash_model, create_access_jwt, create_refresh_jwt,
     decode_token
 )
 from src.converter.converters import convert_AUTH_to_DB
@@ -73,5 +73,4 @@ async def refresh(token: str, redis: Redis):
 
 async def blacklist_token(token: str, redis: Redis):
     await redis.set(token, "blacklisted")
-
 

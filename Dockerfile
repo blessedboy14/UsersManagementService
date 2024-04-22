@@ -16,6 +16,7 @@ WORKDIR /code
 COPY --from=requirements-stage /backend/requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN apk add libmagic
 
 COPY ./src /code/src
 

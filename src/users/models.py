@@ -67,7 +67,7 @@ class UserPatch(BaseModel):
                     "username": "your_username",
                     "phone": "+375331234567",
                     "email": "your@email.com",
-                    "image": "path/to/image.jpg"
+                    "image": "s3://some_name/16.jpg"
                 }
             ]
         }
@@ -88,7 +88,7 @@ class AdminPatch(UserPatch):
                     "username": "your_username",
                     "phone": "+375331234567",
                     "email": "your@email.com",
-                    "image": "path/to/image.jpg",
+                    "image": "s3://some_name/16.jpg",
                     "role": "user",
                     "is_blocked": "false",
                     "group_id": "869bd587-f1a7-4e42-88d4-86713f64f308"

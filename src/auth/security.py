@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from datetime import timedelta, datetime
 
 from src.auth.models import UserIn, UserInDB
-from src.dependencies.core import Redis
 
 
 SECRET_KEY = "68d5b14da586a1cf8609325abc54a3da88c410e828307e3eded230a58a2a3d8e"
