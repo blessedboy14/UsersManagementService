@@ -7,9 +7,9 @@ from enum import Enum
 
 
 class RoleEnum(str, Enum):
-    ADMIN = "admin"
-    MODERATOR = "moderator"
-    USER = "user"
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
 
 
 class Group(BaseModel):
@@ -36,7 +36,7 @@ class UserBase(BaseModel):
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
     modified_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
 
-    @model_validator(mode="after")
+    @model_validator(mode='after')
     def validate_time(self):
         if self.modified_at:
             self.modified_at = datetime.datetime.now()
@@ -50,7 +50,6 @@ class User(UserBase):
 
 
 class UserPatch(BaseModel):
-
     name: Optional[str] = None
     surname: Optional[str] = None
     username: Optional[str] = None
@@ -59,15 +58,15 @@ class UserPatch(BaseModel):
     image: Optional[str] = None
 
     model_config = {
-        "json_schema_extra": {
-            "examples": [
+        'json_schema_extra': {
+            'examples': [
                 {
-                    "name": "John",
-                    "surname": "Doe",
-                    "username": "your_username",
-                    "phone": "+375331234567",
-                    "email": "your@email.com",
-                    "image": "s3://some_name/16.jpg"
+                    'name': 'John',
+                    'surname': 'Doe',
+                    'username': 'your_username',
+                    'phone': '+375331234567',
+                    'email': 'your@email.com',
+                    'image': 's3://some_name/16.jpg',
                 }
             ]
         }
@@ -80,18 +79,18 @@ class AdminPatch(UserPatch):
     group_id: Optional[uuid.UUID] = None
 
     model_config = {
-        "json_schema_extra": {
-            "examples": [
+        'json_schema_extra': {
+            'examples': [
                 {
-                    "name": "John",
-                    "surname": "Doe",
-                    "username": "your_username",
-                    "phone": "+375331234567",
-                    "email": "your@email.com",
-                    "image": "s3://some_name/16.jpg",
-                    "role": "user",
-                    "is_blocked": "false",
-                    "group_id": "869bd587-f1a7-4e42-88d4-86713f64f308"
+                    'name': 'John',
+                    'surname': 'Doe',
+                    'username': 'your_username',
+                    'phone': '+375331234567',
+                    'email': 'your@email.com',
+                    'image': 's3://some_name/16.jpg',
+                    'role': 'user',
+                    'is_blocked': 'false',
+                    'group_id': '869bd587-f1a7-4e42-88d4-86713f64f308',
                 }
             ]
         }

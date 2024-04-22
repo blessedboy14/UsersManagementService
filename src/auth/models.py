@@ -17,7 +17,7 @@ class AuthUser(BaseModel):
                     'email': 'your@email.com',
                     'username': 'your_username',
                     'phone': '+48221234567',
-                    'password': 'your_password'
+                    'password': 'your_password',
                 }
             ]
         }

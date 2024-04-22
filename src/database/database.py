@@ -14,11 +14,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class DatabaseSessionMaker:
     def __init__(self, urlPath: str, kwargs: dict[str, Any]):
         self._engine = create_async_engine(urlPath, **kwargs)
-        self._sessionmaker = async_sessionmaker(bind=self._engine, expire_on_commit=False)
+        self._sessionmaker = async_sessionmaker(
+            bind=self._engine, expire_on_commit=False
+        )
 
     async def close(self):
         if self._engine is None:
-            raise Exception("DatabaseSessionMaker: engine is None")
+            raise Exception('DatabaseSessionMaker: engine is None')
         await self._engine.dispose()
 
         self._sessionmaker = None
@@ -27,7 +29,7 @@ class DatabaseSessionMaker:
     @contextlib.asynccontextmanager
     async def create_session(self) -> AsyncIterator[AsyncSession]:
         if self._sessionmaker is None:
-            raise Exception("DatabaseSessionMaker: sessionmaker is None")
+            raise Exception('DatabaseSessionMaker: sessionmaker is None')
 
         session = self._sessionmaker()
         try:
@@ -41,7 +43,7 @@ class DatabaseSessionMaker:
     @contextlib.asynccontextmanager
     async def create_connection(self) -> AsyncIterator[AsyncConnection]:
         if self._engine is None:
-            raise Exception("DatabaseSessionMaker: engine is None")
+            raise Exception('DatabaseSessionMaker: engine is None')
 
         async with self._engine.begin() as conn:
             try:

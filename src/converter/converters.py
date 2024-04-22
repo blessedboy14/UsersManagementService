@@ -22,10 +22,9 @@ def convert_IN_to_DB_model(user: User) -> UserDB:
 
 
 def convert_AUTH_to_DB(user: UserInDB) -> UserDB:
-
     return UserDB(
         username=user.username,
         phone=user.phone,
         email=user.email,
-        hashed_password=user.hashed_password
+        hashed_password=user.hashed_password,
     )

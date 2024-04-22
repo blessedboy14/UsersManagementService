@@ -3,12 +3,16 @@ import pika
 from src.config.settings import settings
 
 
-conf = {'host': settings.rabbit_host, 'port': '5672', 'q_name': "reset-password-stream",
-        'login': settings.username, 'password': settings.passw}
+conf = {
+    'host': settings.rabbit_host,
+    'port': '5672',
+    'q_name': 'reset-password-stream',
+    'login': settings.username,
+    'password': settings.passw,
+}
 
 
 class Publisher:
-
     def __init__(self, config: dict):
         self._config = config
         self._queue_name = self._config['q_name']
@@ -20,18 +24,18 @@ class Publisher:
         self._channel.basic_publish(
             exchange='',
             routing_key=self._queue_name,
-            properties=pika.BasicProperties(
-            ),
-            body=json.dumps(message)
+            properties=pika.BasicProperties(),
+            body=json.dumps(message),
         )
 
     def create_connection(self):
-        params = pika.ConnectionParameters(host=self._config['host'],
-                                           port=self._config['port'],
-                                           credentials=pika.PlainCredentials(
-                                               username=self._config['login'],
-                                               password=self._config['password']
-                                           ))
+        params = pika.ConnectionParameters(
+            host=self._config['host'],
+            port=self._config['port'],
+            credentials=pika.PlainCredentials(
+                username=self._config['login'], password=self._config['password']
+            ),
+        )
         return pika.BlockingConnection(params)
 
 

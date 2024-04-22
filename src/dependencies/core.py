@@ -10,7 +10,12 @@ DBSession = Annotated[AsyncSession, Depends(get_session)]
 
 
 async def init_redis_pool() -> AsyncIterator[Redis]:
-    redis_session = from_url(f"redis://{settings.redis_host}", password=settings.passw, encoding="utf-8", decode_responses=True)
+    redis_session = from_url(
+        f'redis://{settings.redis_host}',
+        password=settings.passw,
+        encoding='utf-8',
+        decode_responses=True,
+    )
     yield redis_session
     await redis_session.close()
 
