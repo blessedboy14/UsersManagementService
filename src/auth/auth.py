@@ -31,7 +31,6 @@ from src.rabbitmq.publisher import publisher
 from src.users.service import update_user
 from src.users.users import upload_image
 
-
 router = APIRouter()
 
 
@@ -44,7 +43,7 @@ router = APIRouter()
 
 @router.post('/login', response_model=TokenSchema, summary='Login')
 async def login(
-    session: DBSession, redis: Redis, form_data: OAuth2PasswordRequestForm = Depends()
+        session: DBSession, redis: Redis, form_data: OAuth2PasswordRequestForm = Depends()
 ):
     if form_data.username is None:
         raise HTTPException(
@@ -75,12 +74,12 @@ async def login(
 
 @router.post('/signup', status_code=status.HTTP_201_CREATED, summary='Sign Up')
 async def signup(
-    username: Annotated[str, Form()],
-    phone: Annotated[PhoneNumber, Form()],
-    email: Annotated[EmailStr, Form()],
-    password: Annotated[str, Form()],
-    session: DBSession,
-    image: UploadFile = File(None),
+        username: Annotated[str, Form()],
+        phone: Annotated[PhoneNumber, Form()],
+        email: Annotated[EmailStr, Form()],
+        password: Annotated[str, Form()],
+        session: DBSession,
+        image: UploadFile = File(None),
 ):
     userIn = UserIn(email=email, phone=phone, password=password, username=username)
     try:
@@ -119,11 +118,14 @@ async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
 
 
 @router.post('/reset-password', summary='Reset Your Password')
-async def reset_password(request: ResetPasswordRequest):
+async def reset_password(request: ResetPasswordRequest, session: DBSession):
+    is_exist = (await get_by_email(request.email, session))
+    if not is_exist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     message = {
         'email': request.email,
-        'link': 'some.url',
+        'link': 'some.url',  # TODO: create implementation
         'publish_time': json.dumps(datetime.utcnow().isoformat()),
     }
     publisher.publish_message(message)
-    return {'message': 'message for resetting sent to rabbitmq'}
+    return {'message': 'message for resetting sent to rabbitmq', 'email': request.email}
