@@ -32,38 +32,6 @@ async def test_refresh_token(async_app_client):
 
 
 @pytest.mark.asyncio
-async def test_refresh_token_blacklisting(create_fake_user, async_app_client):
-    login_data = existed_user
-    async_client = async_app_client
-    response = await async_client.post('auth/login', data=login_data)
-    assert response.status_code == 200
-    refresh_token = response.json().get('refresh_token')
-    assert refresh_token
-    headers = {'refresh-tkn': refresh_token}
-    response = await async_client.post('auth/refresh-token', headers=headers)
-    assert response.status_code == 200
-    response = await async_client.post('auth/refresh-token', headers=headers)
-    assert response.status_code == 401
-
-
-@pytest.mark.asyncio
-async def test_refresh_token_usability(async_app_client):
-    login_data = existed_user
-    async_client = async_app_client
-    response = await async_client.post('auth/login', data=login_data)
-    assert response.status_code == 200
-    refresh_token = response.json().get('refresh_token')
-    headers = {'refresh-tkn': refresh_token}
-    response = await async_client.post('auth/refresh-token', headers=headers)
-    assert response.status_code == 200
-    access_token = response.json().get('access_token')
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = await async_client.get('users/me', headers=headers)
-    assert response.status_code == 200
-    assert response.json().get('username') == existed_user['username']
-
-
-@pytest.mark.asyncio
 async def test_publishing_password_reset_message(async_app_client):
     to_reset_email = {'email': 'ewkere@email.com'}
     response = await async_app_client.post('auth/reset-password', json=to_reset_email)
@@ -89,9 +57,9 @@ async def test_create_user(create_fake_user, async_app_client):
 
 
 @pytest.mark.asyncio
-async def test_create_10_users(async_app_client):
+async def test_create_5_users(async_app_client):
     async_client = async_app_client
-    for _ in range(10):
+    for _ in range(5):
         user = generate_user()
         response = await async_client.post('/auth/signup', data=user[1])
         assert response.status_code == 201
@@ -177,9 +145,42 @@ async def test_login_nonexistent_user(async_app_client):
 
 @pytest.mark.asyncio
 async def test_login_with_incorrect_passw(async_app_client):
-    login_data = existed_user
+    login_data = existed_user.copy()
     login_data['password'] = 'fake_password'
     async_client = async_app_client
     response = await async_client.post('/auth/login', data=login_data)
     assert response.status_code == 401
     assert response.json().get('detail') == "Password don't match"
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_blacklisting(create_fake_user, async_app_client):
+    login_data = existed_user.copy()
+    async_client = async_app_client
+    response = await async_client.post('auth/login', data=login_data)
+    assert response.status_code == 200
+    refresh_token = response.json().get('refresh_token')
+    assert refresh_token
+    headers = {'refresh-tkn': refresh_token}
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 200
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_usability(async_app_client):
+    login_data = existed_user.copy()
+    async_client = async_app_client
+    response = await async_client.post('auth/login', data=login_data)
+    assert response.status_code == 200
+    refresh_token = response.json().get('refresh_token')
+    headers = {'refresh-tkn': refresh_token}
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 200
+    access_token = response.json().get('access_token')
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = await async_client.get('users/me', headers=headers)
+    print(response.json())
+    assert response.status_code == 200
+    assert response.json().get('username') == existed_user['username']

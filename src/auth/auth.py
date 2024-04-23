@@ -33,9 +33,7 @@ from src.users.users import upload_image
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(asctime)s:%(levelname)s%:%(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S %p',
-                    filename='example.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.CRITICAL)
 
 
 @router.post('/login', response_model=TokenSchema, summary='Login')
@@ -80,7 +78,7 @@ async def signup(
     image: UploadFile = File(None),
 ):
     userIn = UserIn(email=email, phone=phone, password=password, username=username)
-    logger.info(f"sign up request with data: {userIn}")
+    # logger.info(f"sign up request with data: {userIn}")
     try:
         hashed_user = await create_user(userIn, session)
         await session.commit()
@@ -96,8 +94,8 @@ async def signup(
                 raise HTTPException(
                     status_code=500, detail='Image uploading failed. {}'.format(e)
                 )
-        logger.info("sign up succeed")
-        return AuthUser(**hashed_user.dict())
+        # logger.info("sign up succeed")
+        return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
         logger.error(f"sign up failed with Integrity Error with error: {e}")
         # await session.rollback()

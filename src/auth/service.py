@@ -2,6 +2,7 @@ from aioredis import Redis
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
 from src.auth.models import LoginUser, UserIn, TokenSchema
 from src.auth.security import (
@@ -18,8 +19,7 @@ from src.database.models import UserDB
 async def create_user(user: UserIn, db_session: AsyncSession):
     hashed_user = hash_model(user)
     db_user = convert_AUTH_to_DB(hashed_user)
-    async with db_session.begin():
-        db_session.add(db_user)
+    db_session.add(db_user)
     return hashed_user
 
 
@@ -77,7 +77,7 @@ async def is_blacklisted(token: str, redis: Redis):
 async def refresh(token: str, redis: Redis):
     if await is_blacklisted(token, redis):
         raise HTTPException(
-            status_code=401, detail='Invalid refresh token(blacklisted)'
+            status_code=status.HTTP_400_BAD_REQUEST, detail='Invalid refresh token(blacklisted)'
         )
     payload = await decode_token(token)
     user_id = payload.get('user_id')

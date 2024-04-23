@@ -9,11 +9,16 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.pool import NullPool
+
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.CRITICAL)
 
 
 class DatabaseSessionMaker:
     def __init__(self, urlPath: str, kwargs: dict[str, Any]):
-        self._engine = create_async_engine(urlPath, **kwargs)
+        self._engine = create_async_engine(urlPath, poolclass=NullPool, **kwargs)
         self._sessionmaker = async_sessionmaker(
             bind=self._engine, expire_on_commit=False
         )
@@ -38,6 +43,7 @@ class DatabaseSessionMaker:
             await session.rollback()
             raise e
         finally:
+            # logger.critical("session closed")
             await session.close()
 
     @contextlib.asynccontextmanager
@@ -60,6 +66,7 @@ session_manager = DatabaseSessionMaker(string_url, {})
 
 
 async def get_session():
+    # logger.critical("session created")
     async with session_manager.create_session() as session:
         yield session
 
