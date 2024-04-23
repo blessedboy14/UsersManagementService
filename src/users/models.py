@@ -26,7 +26,7 @@ class UserBase(BaseModel):
     id: uuid.UUID
     name: Optional[str] = Field(None, min_length=3, max_length=128)
     surname: Optional[str] = Field(None, min_length=3, max_length=128)
-    username: str = Field(min_length=3, max_length=128)
+    username: str = Field(pattern='^[A-Za-z0-9-_]+$', min_length=3, max_length=40)
     phone: str = Field(min_length=13, max_length=13)
     email: EmailStr
     role: Optional[RoleEnum] = RoleEnum.USER

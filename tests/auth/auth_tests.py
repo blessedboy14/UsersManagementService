@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from src.main import app
+from tests.fixtures.auth_fixtures import generate_user, create_fake_user
 from tests.fixtures.common_fixtures import async_app_client
-from tests.fixtures.auth_fixtures import create_fake_user, _generate_user
 
 
 client = TestClient(app)
@@ -12,7 +13,7 @@ existed_user = {'username': 'blessedboy', 'password': '12345678'}
 def test_health_check():
     response = client.get('/health_check')
     assert response.status_code == 200
-    assert response.json() == {'status': 'ready'}
+    assert response.json() == {'status': 'running'}
 
 
 @pytest.mark.asyncio
@@ -75,7 +76,7 @@ async def test_publish_reset_password_for_non_existing_user(async_app_client):
     to_reset_email = {'email': 'non@exist.com'}
     response = await async_app_client.post('auth/reset-password', json=to_reset_email)
     assert response.status_code == 404
-    assert response.json().get('detail') == "User not found"
+    assert response.json().get('detail') == 'User not found'
 
 
 @pytest.mark.asyncio
@@ -91,7 +92,7 @@ async def test_create_user(create_fake_user, async_app_client):
 async def test_create_10_users(async_app_client):
     async_client = async_app_client
     for _ in range(10):
-        user = _generate_user()
+        user = generate_user()
         response = await async_client.post('/auth/signup', data=user[1])
         assert response.status_code == 201
 
@@ -111,7 +112,7 @@ async def test_create_without_required_param(create_fake_user, async_app_client)
 @pytest.mark.asyncio
 async def test_create_with_invalid_params(create_fake_user, async_app_client):
     payload, payload_with_pass = create_fake_user
-    payload_with_pass['email'] = "not_an_email"
+    payload_with_pass['email'] = 'not_an_email'
     async_client = async_app_client
     response = await async_client.post('/auth/signup', data=payload_with_pass)
     assert response.status_code == 422
@@ -141,12 +142,15 @@ async def test_create_then_login_then_delete(create_fake_user, async_app_client)
     response = await async_client.post('/auth/signup', data=payload_with_pass)
     assert response.status_code == 201
     assert response.json() == payload
-    login_data = {'username': payload['username'], 'password': payload_with_pass['password']}
+    login_data = {
+        'username': payload['username'],
+        'password': payload_with_pass['password'],
+    }
     response = await async_client.post('/auth/login', data=login_data)
     assert response.status_code == 200
     access_token = response.json()['access_token']
     assert access_token
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_client.delete('/users/me', headers=headers)
     assert response.status_code == 200
     assert response.json() == {'message': 'User deleted', 'data': None}
@@ -155,7 +159,9 @@ async def test_create_then_login_then_delete(create_fake_user, async_app_client)
 @pytest.mark.asyncio
 async def test_login(async_app_client):
     async_client = async_app_client
-    response = await async_client.post('/auth/login', data={'username': 'blessedboy', 'password': '12345678'})
+    response = await async_client.post(
+        '/auth/login', data={'username': 'blessedboy', 'password': '12345678'}
+    )
     assert response.status_code == 200
     assert response.json().get('type') == 'bearer'
 
@@ -176,4 +182,4 @@ async def test_login_with_incorrect_passw(async_app_client):
     async_client = async_app_client
     response = await async_client.post('/auth/login', data=login_data)
     assert response.status_code == 401
-    assert response.json().get('detail') == 'Password don\'t match'
+    assert response.json().get('detail') == "Password don't match"

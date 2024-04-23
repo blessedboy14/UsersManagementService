@@ -29,7 +29,7 @@ async def get_by_email(email: str, db_session: AsyncSession):
     ).first()
 
 
-async def login_user(userIn: LoginUser, db_session: AsyncSession, redis: Redis):
+async def login_user(userIn: LoginUser, db_session: AsyncSession):
     db_model = await get_user(userIn, db_session)
     if db_model is not None:
         if not db_model.is_blocked:

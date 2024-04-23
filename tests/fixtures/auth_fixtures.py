@@ -8,9 +8,9 @@ from faker import Faker
 fake = Faker('ru_RU')
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_fake_user():
-    return _generate_user()
+    return generate_user()
 
 
 def fake_phone():
@@ -29,7 +29,7 @@ def fake_password():
     return pasw
 
 
-def _generate_user():
+def generate_user():
     payload = {
         'email': fake.email(),
         'phone': fake_phone(),

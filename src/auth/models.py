@@ -7,7 +7,7 @@ PhoneNumber.phone_format = 'E164'
 
 class AuthUser(BaseModel):
     email: EmailStr = Field(default='example@example.com')
-    username: str = Field(min_length=3, max_length=128)
+    username: str = Field(pattern='^[A-Za-z0-9-_]+$', min_length=3, max_length=40)
     phone: PhoneNumber = Field(default='+375291234567')
 
     model_config = {
@@ -30,7 +30,7 @@ class ResetPasswordRequest(BaseModel):
 
 class LoginUser(BaseModel):
     login: str = Field(
-        min_length=3, max_length=128, examples=['<EMAIL>', '<USERNAME>', '+48221234567']
+        min_length=3, max_length=64, examples=['<EMAIL>', '<USERNAME>', '+48221234567']
     )
     password: str = Field(min_length=8, max_length=128, examples=['your_password'])
 

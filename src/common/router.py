@@ -5,4 +5,4 @@ common = APIRouter()
 
 @common.get('/health_check', summary='Check Server Work')
 async def health_check():
-    return {'status': 'ready'}
+    return {'status': 'running'}
