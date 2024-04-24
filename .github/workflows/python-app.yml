@@ -35,4 +35,4 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
     - name: Test with pytest
       run: |
-        pytest
+        pytest tests/auth/auth_tests.py tests/users/users_tests.py
