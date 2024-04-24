@@ -39,14 +39,14 @@ def generate_user():
     return payload, payload_with_pass
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 async def create_start_user(async_app_client):
     client = async_app_client
     data = {
         'email': 'ewkere@email.com',
         'phone': '+375298057993',
         'username': 'blessedboy',
-        'password': '12345678'
+        'password': '12345678',
     }
     response = await client.post('/auth/signup', data=data)
     assert response.status_code == 200

@@ -24,6 +24,10 @@ class AuthUser(BaseModel):
     }
 
 
+class ResponseUser(AuthUser):
+    message: str = Field(default='user created')
+
+
 class ResetPasswordRequest(BaseModel):
     email: EmailStr = Field(min_length=3, max_length=128, examples=['your@email.com'])
 
@@ -48,3 +52,8 @@ class TokenSchema(BaseModel):
     access_token: str
     refresh_token: str
     type: str
+
+
+class ResetResponseSchema(BaseModel):
+    message: str
+    email: EmailStr

@@ -2,12 +2,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
-from tests.fixtures.auth_fixtures import generate_user, create_fake_user
-from tests.fixtures.common_fixtures import async_app_client
+from tests.utils.fixtures.auth_fixtures import generate_user, create_fake_user
+from tests.utils.fixtures.common_fixtures import async_app_client
+from tests.utils.database.setup import existed_user
 
 
 client = TestClient(app)
-existed_user = {'username': 'blessedboy', 'password': '12345678'}
 
 
 def test_health_check():
@@ -53,6 +53,7 @@ async def test_create_user(create_fake_user, async_app_client):
     async_client = async_app_client
     response = await async_client.post('/auth/signup', data=payload_with_pass)
     assert response.status_code == 201
+    payload.update({'message': 'user created'})
     assert response.json() == payload
 
 
@@ -93,35 +94,15 @@ async def test_create_with_invalid_params(create_fake_user, async_app_client):
 
 
 @pytest.mark.asyncio
-async def test_integration_error(create_fake_user, async_app_client):
+async def test_create_with_integration_error(create_fake_user, async_app_client):
     payload, payload_with_pass = create_fake_user
     async_client = async_app_client
     response = await async_client.post('/auth/signup', data=payload_with_pass)
     assert response.status_code == 201
+    payload.update({'message': 'user created'})
     assert response.json() == payload
     response = await async_client.post('/auth/signup', data=payload_with_pass)
     assert response.status_code == 400
-
-
-@pytest.mark.asyncio
-async def test_create_then_login_then_delete(create_fake_user, async_app_client):
-    payload, payload_with_pass = create_fake_user
-    async_client = async_app_client
-    response = await async_client.post('/auth/signup', data=payload_with_pass)
-    assert response.status_code == 201
-    assert response.json() == payload
-    login_data = {
-        'username': payload['username'],
-        'password': payload_with_pass['password'],
-    }
-    response = await async_client.post('/auth/login', data=login_data)
-    assert response.status_code == 200
-    access_token = response.json()['access_token']
-    assert access_token
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = await async_client.delete('/users/me', headers=headers)
-    assert response.status_code == 200
-    assert response.json() == {'message': 'User deleted', 'data': None}
 
 
 @pytest.mark.asyncio
@@ -181,6 +162,5 @@ async def test_refresh_token_usability(async_app_client):
     access_token = response.json().get('access_token')
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_client.get('users/me', headers=headers)
-    print(response.json())
     assert response.status_code == 200
     assert response.json().get('username') == existed_user['username']

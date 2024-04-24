@@ -6,12 +6,10 @@ from datetime import timedelta, datetime
 
 from src.auth.models import UserIn, UserInDB
 
-
-SECRET_KEY = '68d5b14da586a1cf8609325abc54a3da88c410e828307e3eded230a58a2a3d8e'
+SECRET_KEY = 'H45SHvuxLkgEKzKt1HyMXSyt1Vtl2YL4b5zUf3q46Ou+KrZYq+yD7x2bTM+N3W0lqxqGRsdky4xG+hIx+fb67A=='
 ALGORITHM = 'HS256'
 ACCESS_EXP = timedelta(minutes=60)
 REFRESH_EXP = timedelta(days=31)
-
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
@@ -49,14 +47,21 @@ def create_refresh_jwt(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + REFRESH_EXP
     to_encode.update({'exp': expire})
+    to_encode.update({'cur_date': datetime.utcnow().isoformat()})
     to_encode.update({'mode': 'refresh_token'})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
 
-async def decode_token(token: str):
+def create_link_token(data: dict):
+    to_encode = data.copy()
+    encoded = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
+    return encoded
+
+
+def decode_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
         return payload
     except JWTError:
-        raise HTTPException(status_code=401, detail='Invalid token')
+        raise HTTPException(status_code=401, detail='Token invalid')

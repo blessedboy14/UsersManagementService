@@ -73,6 +73,11 @@ class UserPatch(BaseModel):
     }
 
 
+class OrderByEnum(str, Enum):
+    ASC = 'asc'
+    DESC = 'desc'
+
+
 class AdminPatch(UserPatch):
     role: Optional[RoleEnum] = RoleEnum.USER
     is_blocked: Optional[bool] = False

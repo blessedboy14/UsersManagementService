@@ -1,7 +1,4 @@
-import json
-from datetime import datetime
 from typing import Annotated
-import logging
 from fastapi import (
     APIRouter,
     HTTPException,
@@ -13,34 +10,36 @@ from fastapi import (
     Header,
 )
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
+from pydantic import EmailStr, ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
-
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.auth.models import (
     UserIn,
-    AuthUser,
     LoginUser,
     TokenSchema,
     ResetPasswordRequest,
+    ResponseUser,
+    ResetResponseSchema,
 )
 from src.dependencies.core import DBSession, Redis
-from src.auth.service import create_user, login_user, refresh, get_by_email
-from src.rabbitmq.publisher import publisher
-from src.users.service import update_user
-from src.users.users import upload_image
+from src.auth.service import (
+    login_user,
+    refresh,
+    create_new_user,
+    send_reset_password_message,
+)
+
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.CRITICAL)
 
 
-@router.post('/login', response_model=TokenSchema, summary='Login')
-async def login(
-    session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()
-):
-    logger.info(f"login request with username: {form_data.username}")
+@router.post(
+    '/login',
+    status_code=status.HTTP_200_OK,
+    response_model=TokenSchema,
+    summary='Login',
+)
+async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username is None:
         raise HTTPException(
             status_code=401, detail='Please provide phone, email or username'
@@ -49,26 +48,12 @@ async def login(
     return await login_user(user, session)
 
 
-# @router.post("/signup", status_code=status.HTTP_201_CREATED, summary="Sign Up")
-# async def signup(userIn: UserIn, session: DBSession,
-#                  image: UploadFile | None = None):
-#     try:
-#         hashed_user = await create_user(userIn, session)
-#         await session.commit()
-#         return AuthUser(**hashed_user.dict())
-#     except IntegrityError as e:
-#         await session.rollback()
-#         raise HTTPException(
-#             status_code=400, detail="Integrity Error(e.g. duplicate unique key)"
-#         )
-#     except SQLAlchemyError as e:
-#         await session.rollback()
-#         raise HTTPException(status_code=400, detail=str(e))
-#     finally:
-#         await session.close()
-
-
-@router.post('/signup', status_code=status.HTTP_201_CREATED, summary='Sign Up')
+@router.post(
+    '/signup',
+    status_code=status.HTTP_201_CREATED,
+    response_model=ResponseUser,
+    summary='Sign Up',
+)
 async def signup(
     username: Annotated[str, Form()],
     phone: Annotated[PhoneNumber, Form()],
@@ -77,63 +62,30 @@ async def signup(
     session: DBSession,
     image: UploadFile = File(None),
 ):
-    userIn = UserIn(email=email, phone=phone, password=password, username=username)
-    # logger.info(f"sign up request with data: {userIn}")
     try:
-        hashed_user = await create_user(userIn, session)
-        await session.commit()
-        if image is not None:
-            try:
-                added_user = await get_by_email(email, session)
-                s3_filename = await upload_image(image, session, username)
-                added_user.image = s3_filename
-                await update_user(added_user, session)
-                await session.commit()
-            except Exception as e:
-                logger.error(f"sign up failed  with error: {e} ")
-                raise HTTPException(
-                    status_code=500, detail='Image uploading failed. {}'.format(e)
-                )
-        # logger.info("sign up succeed")
-        return AuthUser(**hashed_user.model_dump())
-    except IntegrityError as e:
-        logger.error(f"sign up failed with Integrity Error with error: {e}")
-        # await session.rollback()
+        userIn = UserIn(email=email, phone=phone, password=password, username=username)
+    except ValidationError as err:
         raise HTTPException(
-            status_code=400, detail='Integrity Error(e.g. duplicate unique key)'
+            status_code=status.HTTP_400_BAD_REQUEST, detail=err.messages
         )
-    except SQLAlchemyError as e:
-        logger.error(f"sign up failed  with error: {e} ")
-        # await session.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    # finally:
-        # await session.close()
+    return await create_new_user(userIn, session, image)
 
 
-@router.post('/refresh-token', summary='Refresh Both Tokens')
+@router.post(
+    '/refresh-token',
+    status_code=status.HTTP_200_OK,
+    response_model=TokenSchema,
+    summary='Refresh Both Tokens',
+)
 async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
-    logger.info("refresh token request")
-    is_valid = await refresh(refresh_tkn, redis)
-    if not is_valid:
-        logger.error(f"refresh token in invalid for request: {refresh_tkn}")
-        raise HTTPException(status_code=401, detail='Invalid refresh token')
-    return is_valid
+    return await refresh(refresh_tkn, redis)
 
 
-@router.post('/reset-password', summary='Reset Your Password')
+@router.post(
+    '/reset-password',
+    status_code=status.HTTP_200_OK,
+    response_model=ResetResponseSchema,
+    summary='Reset Your Password',
+)
 async def reset_password(request: ResetPasswordRequest, session: DBSession):
-    logger.info(f"reset password request for email: {request.email}")
-    is_exist = await get_by_email(request.email, session)
-    if not is_exist:
-        logger.info(f"requested email for reset does not exist: {request.email}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
-        )
-    message = {
-        'email': request.email,
-        'link': 'some.url',  # TODO: create implementation
-        'publish_time': json.dumps(datetime.utcnow().isoformat()),
-    }
-    publisher.publish_message(message)
-    logger.info(f"reset password message published to rabbitmq")
-    return {'message': 'message for resetting sent to rabbitmq', 'email': request.email}
+    return await send_reset_password_message(request, session)

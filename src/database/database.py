@@ -11,10 +11,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.pool import NullPool
 
-import logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.CRITICAL)
-
 
 class DatabaseSessionMaker:
     def __init__(self, urlPath: str, kwargs: dict[str, Any]):
@@ -34,8 +30,7 @@ class DatabaseSessionMaker:
     @contextlib.asynccontextmanager
     async def create_session(self) -> AsyncIterator[AsyncSession]:
         if self._sessionmaker is None:
-            raise Exception('DatabaseSessionMaker: sessionmaker is None')
-
+            raise Exception('DatabaseSessionMaker: session maker is None')
         session = self._sessionmaker()
         try:
             yield session
@@ -43,7 +38,6 @@ class DatabaseSessionMaker:
             await session.rollback()
             raise e
         finally:
-            # logger.critical("session closed")
             await session.close()
 
     @contextlib.asynccontextmanager
@@ -66,7 +60,6 @@ session_manager = DatabaseSessionMaker(string_url, {})
 
 
 async def get_session():
-    # logger.critical("session created")
     async with session_manager.create_session() as session:
         yield session
 

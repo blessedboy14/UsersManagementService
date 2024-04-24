@@ -6,7 +6,7 @@ from src.config.settings import settings
 conf = {
     'host': settings.rabbit_host,
     'port': '5672',
-    'q_name': 'reset-password-stream',
+    'q_name': settings.rabbit_queue,
     'login': settings.username,
     'password': settings.passw,
 }
