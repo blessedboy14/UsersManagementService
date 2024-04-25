@@ -16,11 +16,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 bearer = HTTPBearer()
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password, hashed_password) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password) -> str:
     return pwd_context.hash(password)
 
 
@@ -34,7 +34,7 @@ def hash_model(user: UserIn) -> UserInDB:
     )
 
 
-def create_access_jwt(data: dict):
+def create_access_jwt(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + ACCESS_EXP
     to_encode.update({'exp': expire})
@@ -43,7 +43,7 @@ def create_access_jwt(data: dict):
     return encoded_jwt
 
 
-def create_refresh_jwt(data: dict):
+def create_refresh_jwt(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + REFRESH_EXP
     to_encode.update({'exp': expire})
@@ -53,13 +53,13 @@ def create_refresh_jwt(data: dict):
     return encoded_jwt
 
 
-def create_link_token(data: dict):
+def create_link_token(data: dict) -> str:
     to_encode = data.copy()
     encoded = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
     return encoded
 
 
-def decode_token(token: str):
+def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
         return payload

@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Query
@@ -20,7 +21,7 @@ router = APIRouter()
 
 async def get_current_user(
     access_token: Annotated[str, Depends(oauth2_scheme)], session: DBSession
-):
+) -> User:
     payload = decode_token(access_token)
     if datetime.fromtimestamp(payload['exp']) < datetime.now():
         raise_credential_exception('Token expired')
@@ -33,18 +34,22 @@ async def get_current_user(
     return user
 
 
-@router.get('/me',
-            status_code=status.HTTP_200_OK,
-            response_model=UserBase,
-            summary='Get Yourself')
+@router.get(
+    '/me',
+    status_code=status.HTTP_200_OK,
+    response_model=UserBase,
+    summary='Get Yourself',
+)
 async def read_users_me(cur_user: Annotated[User, Depends(get_current_user)]):
     return cur_user
 
 
-@router.patch('/me',
-              status_code=status.HTTP_200_OK,
-              response_model=UserBase,
-              summary='Patch Yourself')
+@router.patch(
+    '/me',
+    status_code=status.HTTP_200_OK,
+    response_model=UserBase,
+    summary='Patch Yourself',
+)
 async def update_user_me(
     updated_user: UserPatch,
     cur_user: Annotated[User, Depends(get_current_user)],
@@ -60,9 +65,7 @@ async def update_user_me(
     return await service.patch_user(updated_item, session)
 
 
-@router.delete('/me',
-               status_code=status.HTTP_200_OK,
-               summary='Delete Me')
+@router.delete('/me', status_code=status.HTTP_200_OK, summary='Delete Me')
 async def delete_me(
     cur_user: Annotated[User, Depends(get_current_user)], session: DBSession
 ):
@@ -142,3 +145,18 @@ async def upload_avatar_image(
     updated_item = cur_user.copy(update=to_update)
     await service.patch_user(updated_item, session)
     return {'image': s3_filename, 'status': 'uploaded'}
+
+
+@router.delete('/{user_id}', status_code=status.HTTP_200_OK, summary='Delete User')
+async def delete_user_as_admin(
+    cur_user: Annotated[User, Depends(get_current_user)],
+    user_id: str,
+    session: DBSession,
+):
+    if cur_user.role is not RoleEnum.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
+        )
+    await service.delete_user(uuid.UUID(user_id), session)
+    await session.commit()
+    return {'message': f'user with id {user_id} deleted'}

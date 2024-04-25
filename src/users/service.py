@@ -4,6 +4,7 @@ from io import BytesIO
 
 import aioboto3
 import magic
+from botocore.exceptions import ClientError
 from fastapi import HTTPException, UploadFile
 from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError
@@ -36,7 +37,7 @@ async def delete_user(user_id: uuid.UUID, session: AsyncSession):
     await session.execute(delete_query)
 
 
-async def get_cur_user_group(group_id: uuid.UUID, session: AsyncSession):
+async def get_cur_user_group(group_id: uuid.UUID, session: AsyncSession) -> Group:
     group = (
         await session.scalars(
             select(Group).where(Group.id == group_id).options(selectinload(Group.users))
@@ -50,7 +51,14 @@ async def get_all_users(session: AsyncSession) -> list[UserDB]:
     return users
 
 
-async def upload_to_s3_bucket(content: BytesIO, filename: str):
+async def _create_bucket_if_not_exists(s3):
+    try:
+        await s3.head_bucket(Bucket=settings.bucket_name)
+    except ClientError:
+        await s3.create_bucket(Bucket=settings.bucket_name)
+
+
+async def upload_to_s3_bucket(content: BytesIO, filename: str) -> str:
     session = aioboto3.Session()
     async with session.client(
         's3',
@@ -58,14 +66,15 @@ async def upload_to_s3_bucket(content: BytesIO, filename: str):
         aws_access_key_id='test',
         aws_secret_access_key='test',
     ) as s3:
+        await _create_bucket_if_not_exists(s3)
         try:
             await s3.upload_fileobj(content, settings.bucket_name, filename)
         except Exception as e:
             raise e
-    return f's3://{filename}'
+    return f's3://{settings.bucket_name}/{filename}'
 
 
-async def patch_user(user_data: User, db_session: AsyncSession):
+async def patch_user(user_data: User, db_session: AsyncSession) -> User:
     try:
         await update_user(convert_IN_to_DB_model(user_data), db_session)
         await db_session.commit()
@@ -84,7 +93,7 @@ def filter_users(
     filter_by_name: str = '',
     sort_by: str = 'username',
     order_by: str = 'desc',
-):
+) -> list[UserDB]:
     page -= 1
     start = page * limit
     to_filter = users
@@ -101,7 +110,7 @@ def filter_users(
             key=lambda u: getattr(u, sort_by),
             reverse=True if order_by == 'desc' else False,
         )
-        filtered = filtered[start: start + limit]
+        filtered = filtered[start : start + limit]
         return filtered
     except Exception:
         raise HTTPException(status_code=400, detail='Invalid filtration params')
@@ -115,7 +124,7 @@ async def filter_setup(
     filter_by_name: str = '',
     sort_by: str = 'username',
     order_by: str = 'desc',
-):
+) -> list[UserDB]:
     if cur_user.role is RoleEnum.USER:
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
     if cur_user.role is RoleEnum.MODERATOR:
@@ -128,7 +137,7 @@ async def filter_setup(
         return filter_users(all_users, page, limit, filter_by_name, sort_by, order_by)
 
 
-async def find_by_id(user_id: str, cur_user: User, session: AsyncSession):
+async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
     if cur_user.role is RoleEnum.USER:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Not allowed'
@@ -152,7 +161,7 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession):
         return found[0]
 
 
-async def upload_image(file: UploadFile, username: str):
+async def upload_image(file: UploadFile, username: str) -> str:
     if not file:
         raise_upload_exception('File not presented')
 

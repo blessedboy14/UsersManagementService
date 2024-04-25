@@ -10,3 +10,4 @@ __pycache__/
 aws/
 volume/
 .idea/
+alembic/versions/

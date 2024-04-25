@@ -11,11 +11,11 @@ from src.users.models import RoleEnum
 class UserDB(Base):
     __tablename__ = 'users'
 
-    email: Mapped[str] = mapped_column(String(60), unique=True)
-    username: Mapped[str] = mapped_column(String(60), unique=True)
+    email: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(60), unique=True, index=True)
     phone: Mapped[str] = mapped_column(String(26), unique=True)
     name: Mapped[Optional[str]] = mapped_column(default='John')
-    hashed_password: Mapped[str]
+    hashed_password: Mapped[str] = mapped_column(index=True)
     surname: Mapped[Optional[str]] = mapped_column(default='Doe')
     role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.USER)
     group_id: Mapped[str] = mapped_column(

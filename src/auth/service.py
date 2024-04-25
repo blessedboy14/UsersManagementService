@@ -15,6 +15,7 @@ from src.auth.models import (
     AuthUser,
     ResetPasswordRequest,
     ResetResponseSchema,
+    UserInDB,
 )
 from src.auth.security import (
     verify_password,
@@ -30,20 +31,20 @@ from src.users.service import update_user, upload_image
 from src.rabbitmq.publisher import publisher
 
 
-async def create_user(user: UserIn, db_session: AsyncSession):
+async def create_user(user: UserIn, db_session: AsyncSession) -> UserInDB:
     hashed_user = hash_model(user)
     db_user = convert_AUTH_to_DB(hashed_user)
     db_session.add(db_user)
     return hashed_user
 
 
-async def get_by_email(email: str, db_session: AsyncSession):
+async def get_by_email(email: str, db_session: AsyncSession) -> UserDB:
     return (
         await db_session.scalars(select(UserDB).where(UserDB.email == email))
     ).first()
 
 
-async def login_user(userIn: LoginUser, db_session: AsyncSession):
+async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema:
     db_model = await get_user(userIn, db_session)
     if db_model is not None:
         if not db_model.is_blocked:
@@ -78,14 +79,14 @@ async def get_user(userIn: LoginUser, db_session: AsyncSession) -> UserDB:
     return user
 
 
-async def is_blacklisted(token: str, redis: Redis):
+async def is_blacklisted(token: str, redis: Redis) -> bool:
     blacklisted = await redis.get(token)
     if blacklisted:
         return True
     return False
 
 
-async def refresh(token: str, redis: Redis):
+async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

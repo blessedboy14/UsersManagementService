@@ -28,7 +28,7 @@ class Publisher:
             body=json.dumps(message),
         )
 
-    def create_connection(self):
+    def create_connection(self) -> pika.BlockingConnection:
         params = pika.ConnectionParameters(
             host=self._config['host'],
             port=self._config['port'],

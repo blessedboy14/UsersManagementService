@@ -2,9 +2,7 @@ import faker
 import pytest
 from httpx import AsyncClient
 
-from tests.utils.database.setup import existed_user
-from tests.utils.fixtures.common_fixtures import async_app_client
-from tests.utils.fixtures.auth_fixtures import create_fake_user
+from tests.utils.database_setup import existed_user
 
 
 async def _auth(client: AsyncClient):

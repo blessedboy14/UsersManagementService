@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     async_sessionmaker,
     create_async_engine,
+    AsyncEngine,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.pool import NullPool
@@ -52,7 +53,7 @@ class DatabaseSessionMaker:
                 await conn.rollback()
                 raise e
 
-    def get_engine(self):
+    def get_engine(self) -> AsyncEngine:
         return self._engine
 
 
@@ -66,6 +67,5 @@ async def get_session():
 
 class Base(DeclarativeBase):
     id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True,
-        default=uuid.uuid4,
+        primary_key=True, default=uuid.uuid4, index=True
     )

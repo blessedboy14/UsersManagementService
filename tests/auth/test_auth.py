@@ -2,9 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
-from tests.utils.fixtures.auth_fixtures import generate_user, create_fake_user
-from tests.utils.fixtures.common_fixtures import async_app_client
-from tests.utils.database.setup import existed_user
+from tests.utils.fake_utils import generate_user
+from tests.utils.database_setup import existed_user
 
 
 client = TestClient(app)

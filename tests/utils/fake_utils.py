@@ -1,16 +1,10 @@
 import random
 import string
 
-import pytest
 from faker import Faker
 
 
 fake = Faker('ru_RU')
-
-
-@pytest.fixture
-def create_fake_user():
-    return generate_user()
 
 
 def fake_phone():
@@ -37,16 +31,3 @@ def generate_user():
     }
     payload_with_pass = {**payload, 'password': fake_password()}
     return payload, payload_with_pass
-
-
-@pytest.fixture(scope='session', autouse=True)
-async def create_start_user(async_app_client):
-    client = async_app_client
-    data = {
-        'email': 'ewkere@email.com',
-        'phone': '+375298057993',
-        'username': 'blessedboy',
-        'password': '12345678',
-    }
-    response = await client.post('/auth/signup', data=data)
-    assert response.status_code == 200
