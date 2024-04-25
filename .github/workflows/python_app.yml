@@ -22,11 +22,15 @@ jobs:
           POSTGRES_USER: blessedboy
           POSTGRES_PASSWORD: ewkere123
           POSTGRES_DB: management_service
+        ports:
+          - 5432:5432
       rabbitmq_manage:
         image: rabbitmq:3.10.7-management
         env:
           RABBITMQ_DEFAULT_USER: blessedboy
           RABBITMQ_DEFAULT_PASS: ewkere123
+        ports:
+         - 6379:6379
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
