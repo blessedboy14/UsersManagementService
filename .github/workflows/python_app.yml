@@ -1,0 +1,54 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python app workflow
+
+on:
+  pull_request:
+    branches: [ "dev" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres
+        env: 
+          POSTGRES_USER: blessedboy
+          POSTGRES_PASSWORD: ewkere123
+          POSTGRES_DB: test_management_service
+        ports:
+          - 5432:5432
+      rabbitmq_manage:
+        image: rabbitmq:3.10.7-management
+        env:
+          RABBITMQ_DEFAULT_USER: blessedboy
+          RABBITMQ_DEFAULT_PASS: ewkere123
+        ports:
+          - 15672:15672
+          - 5672:5672
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with ruff
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        ruff check src
+        ruff check --fix src
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    - name: Test with pytest
+      run: |
+        pytest tests/auth/auth_tests.py tests/users/users_tests.py
