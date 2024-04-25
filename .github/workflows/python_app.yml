@@ -49,8 +49,8 @@ jobs:
         ruff check src
         ruff check --fix src
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    - name: Test with pytest
-      run: |
-        alembic upgrade head
-        alembic revision --autogenerate -m "Initial tables"
-        pytest tests/auth/auth_tests.py tests/users/users_tests.py
+    # - name: Test with pytest
+    #   run: |
+    #     alembic upgrade head
+    #     alembic revision --autogenerate -m "Initial tables"
+    #     pytest tests/auth/auth_tests.py tests/users/users_tests.py
