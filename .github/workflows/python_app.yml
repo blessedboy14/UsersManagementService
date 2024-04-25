@@ -30,7 +30,8 @@ jobs:
           RABBITMQ_DEFAULT_USER: blessedboy
           RABBITMQ_DEFAULT_PASS: ewkere123
         ports:
-         - 6379:6379
+          - 15672:15672
+          - 5672:5672
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
