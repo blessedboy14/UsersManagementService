@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
+from src.config.settings import logger
 from src.auth.models import UserIn, UserInDB
 
 SECRET_KEY = 'H45SHvuxLkgEKzKt1HyMXSyt1Vtl2YL4b5zUf3q46Ou+KrZYq+yD7x2bTM+N3W0lqxqGRsdky4xG+hIx+fb67A=='
@@ -62,5 +63,6 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
         return payload
-    except JWTError:
+    except JWTError as e:
+        logger.error(f'Token expired or other error: {e}')
         raise HTTPException(status_code=401, detail='Token invalid')

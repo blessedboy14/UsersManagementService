@@ -26,6 +26,7 @@ from src.auth.security import (
     create_link_token,
 )
 from src.utils.converters import convert_AUTH_to_DB
+from src.config.settings import logger
 from src.database.models import UserDB
 from src.users.service import update_user, upload_image
 from src.rabbitmq.publisher import publisher
@@ -35,6 +36,7 @@ async def create_user(user: UserIn, db_session: AsyncSession) -> UserInDB:
     hashed_user = hash_model(user)
     db_user = convert_AUTH_to_DB(hashed_user)
     db_session.add(db_user)
+    logger.info('User created')
     return hashed_user
 
 
@@ -52,6 +54,7 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                 data = {'user_id': db_model.id.hex}
                 access_token = create_access_jwt(data)
                 refresh_token = create_refresh_jwt(data)
+                logger.info('User logged in')
                 return TokenSchema(
                     message='Logged in successfully',
                     access_token=access_token,
@@ -59,10 +62,13 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                     type='bearer',
                 )
             else:
+                logger.error(f'User password don\'t match with existed')
                 raise HTTPException(status_code=401, detail="Password don't match")
         else:
+            logger.error(f'User is blocked: {userIn.login}')
             raise HTTPException(status_code=401, detail='User blocked')
     else:
+        logger.error(f'User not found in the database: {userIn.login}')
         raise HTTPException(status_code=401, detail='User not found')
 
 
@@ -81,6 +87,7 @@ async def get_user(userIn: LoginUser, db_session: AsyncSession) -> UserDB:
 
 async def is_blacklisted(token: str, redis: Redis) -> bool:
     blacklisted = await redis.get(token)
+    logger.debug('blacklisting check')
     if blacklisted:
         return True
     return False
@@ -88,6 +95,7 @@ async def is_blacklisted(token: str, redis: Redis) -> bool:
 
 async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
+        logger.error(f'token blacklisted already')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid refresh token(blacklisted)',
@@ -96,6 +104,7 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
     user_id = payload.get('user_id')
     token_mode = payload.get('mode')
     if token_mode and token_mode == 'refresh_token':
+        logger.debug(f'process correct refresh token for user id: {user_id}')
         await blacklist_token(token, redis)
         data = {'user_id': user_id}
         access_token = create_access_jwt(data)
@@ -107,10 +116,12 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
             type='bearer',
         )
     else:
+        logger.error('not refresh token(invalid payload)')
         raise HTTPException(status_code=401, detail='Not a refresh token')
 
 
 async def blacklist_token(token: str, redis: Redis):
+    logger.debug('blacklisting token now')
     await redis.set(token, 'blacklisted')
 
 
@@ -130,16 +141,20 @@ async def create_new_user(
                 await update_user(added_user, session)
                 await session.commit()
             except Exception as e:
+                logger.error(f'Error with updating users image: {e}')
                 raise HTTPException(
                     status_code=500, detail='Image uploading failed. {}'.format(e)
                 )
+        logger.debug('user created without image')
         return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
+        logger.error(f'integrity error, unique already exists: {e}')
         raise HTTPException(
             status_code=400,
             detail=f'Integrity Error(e.g. duplicate unique key); msg: {e}',
         )
     except SQLAlchemyError as e:
+        logger.error(f'unhandled sqlalchemy error: {e}')
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -149,6 +164,7 @@ def _generate_reset_password_url(email: str, user_id: str):
         'type': 'reset_password',
         'expiry': (datetime.utcnow() + timedelta(days=30)).isoformat(),
     }
+    logger.debug(f'generating reset password link for: {email}')
     token = create_link_token(payload)
     reset_link = f'https://127.0.0.1:8000/auth/reset-password/{user_id}?token=' + token
     return reset_link
@@ -159,6 +175,7 @@ async def send_reset_password_message(
 ):
     is_exist = await get_by_email(request.email, db_session)
     if not is_exist:
+        logger.error(f'user with email {request.email} don\'t exist')
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
         )
@@ -167,7 +184,7 @@ async def send_reset_password_message(
         'link': _generate_reset_password_url(request.email, is_exist.id),
         'publish_time': json.dumps(datetime.utcnow().isoformat()),
     }
-    print(message)
+    logger.debug(f'sending message to rabbitmq queue')
     publisher.publish_message(message)
     return ResetResponseSchema(
         message='message for resetting sent to rabbitmq', email=request.email

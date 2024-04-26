@@ -21,6 +21,7 @@ from src.auth.models import (
     ResponseUser,
     ResetResponseSchema,
 )
+from src.config.settings import logger
 from src.dependencies.core import DBSession, Redis
 from src.auth.service import (
     login_user,
@@ -39,7 +40,9 @@ router = APIRouter()
     summary='Login',
 )
 async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()):
+    logger.info('Login request')
     if form_data.username is None:
+        logger.error('No username provided')
         raise HTTPException(
             status_code=401, detail='Please provide phone, email or username'
         )
@@ -61,9 +64,11 @@ async def signup(
     session: DBSession,
     image: UploadFile = File(None),
 ):
+    logger.info('Sign Up request')
     try:
         userIn = UserIn(email=email, phone=phone, password=password, username=username)
     except ValidationError as err:
+        logger.error(f'Failed to create model from sign up input with err: {err}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=err.messages
         )
@@ -77,6 +82,7 @@ async def signup(
     summary='Refresh Both Tokens',
 )
 async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
+    logger.info('Refresh Token request')
     return await refresh(refresh_tkn, redis)
 
 
@@ -87,4 +93,5 @@ async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
     summary='Reset Your Password',
 )
 async def reset_password(request: ResetPasswordRequest, session: DBSession):
+    logger.info('Password reset request')
     return await send_reset_password_message(request, session)

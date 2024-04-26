@@ -1,6 +1,6 @@
 import json
 import pika
-from src.config.settings import settings
+from src.config.settings import settings, logger
 
 
 conf = {
@@ -21,6 +21,7 @@ class Publisher:
         self._publish_q = self._channel.queue_declare(queue=self._queue_name)
 
     def publish_message(self, message: dict):
+        logger.debug(f'publishing message: {message}')
         self._channel.basic_publish(
             exchange='',
             routing_key=self._queue_name,

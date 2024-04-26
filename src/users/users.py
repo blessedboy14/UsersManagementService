@@ -15,6 +15,7 @@ from src.auth.security import oauth2_scheme, decode_token
 import src.users.service as service
 from src.dependencies.core import DBSession
 from src.users.exceptions import raise_credential_exception
+from src.config.settings import logger
 
 router = APIRouter()
 
@@ -22,6 +23,7 @@ router = APIRouter()
 async def get_current_user(
     access_token: Annotated[str, Depends(oauth2_scheme)], session: DBSession
 ) -> User:
+    logger.debug('fetching user from token')
     payload = decode_token(access_token)
     if datetime.fromtimestamp(payload['exp']) < datetime.now():
         raise_credential_exception('Token expired')
@@ -41,6 +43,7 @@ async def get_current_user(
     summary='Get Yourself',
 )
 async def read_users_me(cur_user: Annotated[User, Depends(get_current_user)]):
+    logger.info('reading current user')
     return cur_user
 
 
@@ -55,8 +58,10 @@ async def update_user_me(
     cur_user: Annotated[User, Depends(get_current_user)],
     session: DBSession,
 ):
+    logger.info('updating current user')
     updated_data = updated_user.model_dump(exclude_unset=True)
     if not updated_data:
+        logger.error('no data to update')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='No info provided or non-existing fields',
@@ -69,6 +74,7 @@ async def update_user_me(
 async def delete_me(
     cur_user: Annotated[User, Depends(get_current_user)], session: DBSession
 ):
+    logger.info('delete current user request')
     await service.delete_user(cur_user.id, session)
     await session.commit()
     return {'message': 'User deleted', 'data': None}
@@ -85,6 +91,7 @@ async def get_users(
     session: DBSession,
     user_id: str,
 ):
+    logger.info('getting user by id as admin or moderator')
     return await service.find_by_id(user_id, cur_user, session)
 
 
@@ -100,12 +107,15 @@ async def patch_user(
     cur_user: Annotated[User, Depends(get_current_user)],
     session: DBSession,
 ):
+    logger.info('patch user by id as admin')
     if cur_user.role is not RoleEnum.ADMIN:
+        logger.error('not an admin')
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Not allowed'
         )
     to_update = await service.get_user(user_id, session)
     if to_update is None:
+        logger.error('no data provided to update')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='User not found'
         )
@@ -129,6 +139,7 @@ async def list_users(
     sort_by: str = 'username',
     order_by: OrderByEnum = OrderByEnum.DESC,
 ):
+    logger.info('list users as admin or moderator')
     return await service.filter_setup(
         cur_user, session, page, limit, filter_by_name, sort_by, order_by
     )
@@ -140,6 +151,7 @@ async def upload_avatar_image(
     session: DBSession,
     file: UploadFile,
 ):
+    logger.info('upload image to s3 localstack request')
     s3_filename = await service.upload_image(file, cur_user.username)
     to_update = {'image': s3_filename}
     updated_item = cur_user.model_copy(update=to_update)
@@ -153,7 +165,9 @@ async def delete_user_as_admin(
     user_id: str,
     session: DBSession,
 ):
+    logger.info('delete user as admin request')
     if cur_user.role is not RoleEnum.ADMIN:
+        logger.info('can\'t perform deleting when not admin')
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
         )
