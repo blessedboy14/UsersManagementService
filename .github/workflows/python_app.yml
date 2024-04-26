@@ -33,7 +33,7 @@ jobs:
           - 15672:15672
           - 5672:5672
       cache:
-        image: redis
+        image: redis:latest
         ports:
           - 6379:6379
         options: redis-server --save 30 1 --loglevel warning --requirepass ewkere123
