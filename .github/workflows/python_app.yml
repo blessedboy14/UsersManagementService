@@ -32,11 +32,6 @@ jobs:
         ports:
           - 15672:15672
           - 5672:5672
-      cache:
-        image: redis:latest
-        ports:
-          - 6379:6379
-        options: --requirepass ewkere123
         
     steps:
     - uses: actions/checkout@v4
