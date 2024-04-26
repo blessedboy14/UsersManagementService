@@ -62,7 +62,7 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                     type='bearer',
                 )
             else:
-                logger.error(f'User password don\'t match with existed')
+                logger.error("User password don't match with existed")
                 raise HTTPException(status_code=401, detail="Password don't match")
         else:
             logger.error(f'User is blocked: {userIn.login}')
@@ -95,7 +95,7 @@ async def is_blacklisted(token: str, redis: Redis) -> bool:
 
 async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
-        logger.error(f'token blacklisted already')
+        logger.error('token blacklisted already')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid refresh token(blacklisted)',
@@ -175,7 +175,7 @@ async def send_reset_password_message(
 ):
     is_exist = await get_by_email(request.email, db_session)
     if not is_exist:
-        logger.error(f'user with email {request.email} don\'t exist')
+        logger.error(f"user with email {request.email} don't exist")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
         )
@@ -184,7 +184,7 @@ async def send_reset_password_message(
         'link': _generate_reset_password_url(request.email, is_exist.id),
         'publish_time': json.dumps(datetime.utcnow().isoformat()),
     }
-    logger.debug(f'sending message to rabbitmq queue')
+    logger.debug('sending message to rabbitmq queue')
     publisher.publish_message(message)
     return ResetResponseSchema(
         message='message for resetting sent to rabbitmq', email=request.email
