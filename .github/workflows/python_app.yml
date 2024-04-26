@@ -46,8 +46,8 @@ jobs:
     - name: Lint with ruff
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        ruff check src
-        ruff check --fix src
+        ruff check .
+        ruff check --fix .
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
     - name: Test with pytest
       run: |
