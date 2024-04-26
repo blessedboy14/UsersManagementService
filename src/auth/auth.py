@@ -29,7 +29,6 @@ from src.auth.service import (
     send_reset_password_message,
 )
 
-
 router = APIRouter()
 
 

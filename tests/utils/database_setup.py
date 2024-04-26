@@ -1,26 +1,24 @@
-from typing import Annotated
-
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.config.settings import settings
 from src.database.database import DatabaseSessionMaker
+from src.users.models import RoleEnum
+from src.auth.security import get_password_hash
 
-username = 'blessedboy'
-passw = 'ewkere123'
+username = settings.username
+passw = settings.passw
 host = 'localhost:5432'
-database = 'test_management_service'
+database = settings.test_db
 
 string_url = f'postgresql+asyncpg://{username}:{passw}@{host}/{database}'
 
-test_db_session = DatabaseSessionMaker(string_url, {})
+test_session_maker = DatabaseSessionMaker(string_url, {})
+base_user = {'username': username, 'hashed_password': get_password_hash('12345678'), 'phone': '+375291235678',
+             'email': 'ewkere@email.com', 'role': RoleEnum.ADMIN}
 
-
-existed_user = {'username': 'blessedboy', 'password': '12345678'}
+existed_user = {'username': username, 'password': '12345678'}
 
 
 async def get_test_session():
-    async with test_db_session.create_session() as session:
+    async with test_session_maker.create_session() as session:
         yield session
 
 
-TestDBSession = Annotated[AsyncSession, Depends(get_test_session)]

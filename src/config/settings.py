@@ -7,14 +7,15 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    passw: str = os.getenv('PASS')
-    username: str = os.getenv('NAME')
+    passw: str = os.getenv('pass')
+    username: str = os.getenv('name')
     postgres_host: str = os.getenv('POSTGRES_HOST')
     redis_host: str = os.getenv('REDIS_HOST')
     rabbit_host: str = os.getenv('RABBITMQ_HOST')
     bucket_name: str = os.getenv('BUCKET_NAME')
     localstack_host: str = os.getenv('LOCALSTACK_HOST')
     rabbit_queue: str = os.getenv('RABBITMQ_QUEUE')
+    test_db: str = 'test_management_service'
 
 
 settings = Settings()

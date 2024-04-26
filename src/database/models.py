@@ -22,7 +22,7 @@ class UserDB(Base):
         ForeignKey('groups.id'), default='d9a83fd7-c45f-4c78-84eb-0922d6a5eec0'
     )
     group: Mapped['Group'] = relationship('Group', back_populates='users', lazy=False)
-    image: Mapped[str] = mapped_column(String(64), default='/static/img/user.png')
+    image: Mapped[str] = mapped_column(String(300), default='/static/img/user.png')
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

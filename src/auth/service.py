@@ -143,14 +143,14 @@ async def create_new_user(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def _generate_reset_password_url(email: str):
+def _generate_reset_password_url(email: str, user_id: str):
     payload = {
         'email': email,
         'type': 'reset_password',
         'expiry': (datetime.utcnow() + timedelta(days=30)).isoformat(),
     }
     token = create_link_token(payload)
-    reset_link = 'https://127.0.0.1:8000/auth/password/reset?token=' + token
+    reset_link = f'https://127.0.0.1:8000/auth/reset-password/{user_id}?token=' + token
     return reset_link
 
 
@@ -164,9 +164,10 @@ async def send_reset_password_message(
         )
     message = {
         'email': request.email,
-        'link': _generate_reset_password_url(request.email),
+        'link': _generate_reset_password_url(request.email, is_exist.id),
         'publish_time': json.dumps(datetime.utcnow().isoformat()),
     }
+    print(message)
     publisher.publish_message(message)
     return ResetResponseSchema(
         message='message for resetting sent to rabbitmq', email=request.email

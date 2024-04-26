@@ -23,7 +23,7 @@ async def get_user(user_id: str, session: AsyncSession) -> User:
     user_db = (
         await session.scalars(select(UserDB).where(UserDB.id == user_id))
     ).first()
-    user = User.from_orm(user_db)
+    user = User.model_validate(user_db)
     return user
 
 

@@ -1,7 +1,7 @@
 from jose import jwt, JWTError
 from fastapi import HTTPException
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer
+from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
 from src.auth.models import UserIn, UserInDB
@@ -13,7 +13,6 @@ REFRESH_EXP = timedelta(days=31)
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
-bearer = HTTPBearer()
 
 
 def verify_password(plain_password, hashed_password) -> bool:
