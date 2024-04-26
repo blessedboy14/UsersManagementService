@@ -167,7 +167,7 @@ async def delete_user_as_admin(
 ):
     logger.info('delete user as admin request')
     if cur_user.role is not RoleEnum.ADMIN:
-        logger.info('can\'t perform deleting when not admin')
+        logger.info("can't perform deleting when not admin")
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
         )

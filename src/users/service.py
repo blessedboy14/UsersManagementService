@@ -119,10 +119,10 @@ def filter_users(
             key=lambda u: getattr(u, sort_by),
             reverse=True if order_by == 'desc' else False,
         )
-        filtered = filtered[start: start + limit]
+        filtered = filtered[start : start + limit]
         return filtered
     except Exception as e:
-        logger.error('error with filtrating, more likely non-existing attribute')
+        logger.error(f'error with filtrating, more likely non-existing attribute: {e}')
         raise HTTPException(status_code=400, detail='Invalid filtration params')
 
 
@@ -136,9 +136,10 @@ async def filter_setup(
     order_by: str = 'desc',
 ) -> list[UserDB]:
     if cur_user.role is RoleEnum.USER:
-        logger.error('can\'t read user\'s as user')
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-                            detail='Not allowed')
+        logger.error("can't read user's as user")
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
+        )
     if cur_user.role is RoleEnum.MODERATOR:
         moderator_group = await get_cur_user_group(cur_user.group_id, session)
         return filter_users(
@@ -151,7 +152,7 @@ async def filter_setup(
 
 async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
     if cur_user.role is RoleEnum.USER:
-        logger.error('can\'t read user\'s as user')
+        logger.error("can't read user's as user")
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
         )
