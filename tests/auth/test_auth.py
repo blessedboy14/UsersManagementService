@@ -15,19 +15,19 @@ def test_health_check():
     assert response.json() == {'status': 'running'}
 
 
-# @pytest.mark.asyncio
-# async def test_refresh_token(async_app_client):
-#     login_data = existed_user
-#     async_client = async_app_client
-#     response = await async_client.post('auth/login', data=login_data)
-#     assert response.status_code == 200
-#     refresh_token = response.json().get('refresh_token')
-#     assert refresh_token
-#     headers = {'refresh-tkn': refresh_token}
-#     response = await async_client.post('auth/refresh-token', headers=headers)
-#     assert response.status_code == 200
-#     assert response.json().get('access_token')
-#     assert response.json().get('refresh_token')
+@pytest.mark.asyncio
+async def test_refresh_token(async_app_client):
+    login_data = existed_user
+    async_client = async_app_client
+    response = await async_client.post('auth/login', data=login_data)
+    assert response.status_code == 200
+    refresh_token = response.json().get('refresh_token')
+    assert refresh_token
+    headers = {'refresh-tkn': refresh_token}
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('access_token')
+    assert response.json().get('refresh_token')
 
 
 @pytest.mark.asyncio
@@ -133,33 +133,33 @@ async def test_login_with_incorrect_passw(async_app_client):
     assert response.json().get('detail') == "Password don't match"
 
 
-# @pytest.mark.asyncio
-# async def test_refresh_token_blacklisting(create_fake_user, async_app_client):
-#     login_data = existed_user.copy()
-#     async_client = async_app_client
-#     response = await async_client.post('auth/login', data=login_data)
-#     assert response.status_code == 200
-#     refresh_token = response.json().get('refresh_token')
-#     assert refresh_token
-#     headers = {'refresh-tkn': refresh_token}
-#     response = await async_client.post('auth/refresh-token', headers=headers)
-#     assert response.status_code == 200
-#     response = await async_client.post('auth/refresh-token', headers=headers)
-#     assert response.status_code == 400
+@pytest.mark.asyncio
+async def test_refresh_token_blacklisting(create_fake_user, async_app_client):
+    login_data = existed_user.copy()
+    async_client = async_app_client
+    response = await async_client.post('auth/login', data=login_data)
+    assert response.status_code == 200
+    refresh_token = response.json().get('refresh_token')
+    assert refresh_token
+    headers = {'refresh-tkn': refresh_token}
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 200
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 400
 
 
-# @pytest.mark.asyncio
-# async def test_refresh_token_usability(async_app_client):
-#     login_data = existed_user.copy()
-#     async_client = async_app_client
-#     response = await async_client.post('auth/login', data=login_data)
-#     assert response.status_code == 200
-#     refresh_token = response.json().get('refresh_token')
-#     headers = {'refresh-tkn': refresh_token}
-#     response = await async_client.post('auth/refresh-token', headers=headers)
-#     assert response.status_code == 200
-#     access_token = response.json().get('access_token')
-#     headers = {'Authorization': f'Bearer {access_token}'}
-#     response = await async_client.get('users/me', headers=headers)
-#     assert response.status_code == 200
-#     assert response.json().get('username') == existed_user['username']
+@pytest.mark.asyncio
+async def test_refresh_token_usability(async_app_client):
+    login_data = existed_user.copy()
+    async_client = async_app_client
+    response = await async_client.post('auth/login', data=login_data)
+    assert response.status_code == 200
+    refresh_token = response.json().get('refresh_token')
+    headers = {'refresh-tkn': refresh_token}
+    response = await async_client.post('auth/refresh-token', headers=headers)
+    assert response.status_code == 200
+    access_token = response.json().get('access_token')
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = await async_client.get('users/me', headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('username') == existed_user['username']

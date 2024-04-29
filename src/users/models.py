@@ -55,7 +55,6 @@ class UserPatch(BaseModel):
     username: Optional[str] = None
     phone: Optional[PhoneNumber] = None
     email: Optional[EmailStr] = None
-    image: Optional[str] = None
 
     model_config = {
         'json_schema_extra': {
@@ -66,7 +65,6 @@ class UserPatch(BaseModel):
                     'username': 'your_username',
                     'phone': '+375331234567',
                     'email': 'your@email.com',
-                    'image': 's3://some_name/16.jpg',
                 }
             ]
         }

@@ -1,0 +1,123 @@
+2024-04-29 13:32:24,315 - src.config.settings - INFO - Login request
+2024-04-29 13:32:24,562 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:24,568 - src.config.settings - INFO - Refresh Token request
+2024-04-29 13:32:24,582 - src.config.settings - INFO - Password reset request
+2024-04-29 13:32:24,626 - src.config.settings - INFO - Password reset request
+2024-04-29 13:32:24,661 - src.config.settings - ERROR - user with email non@exist.com don't exist
+2024-04-29 13:32:24,667 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:24,874 - src.config.settings - INFO - User created
+2024-04-29 13:32:24,916 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:25,120 - src.config.settings - INFO - User created
+2024-04-29 13:32:25,160 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:25,363 - src.config.settings - INFO - User created
+2024-04-29 13:32:25,402 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:25,607 - src.config.settings - INFO - User created
+2024-04-29 13:32:25,645 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:25,849 - src.config.settings - INFO - User created
+2024-04-29 13:32:25,889 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:26,096 - src.config.settings - INFO - User created
+2024-04-29 13:32:26,143 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:26,346 - src.config.settings - INFO - User created
+2024-04-29 13:32:26,386 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:26,589 - src.config.settings - INFO - User created
+2024-04-29 13:32:26,623 - src.config.settings - ERROR - integrity error, unique already exists: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "users_phone_key"
+DETAIL:  Key (phone)=(+375291951765) already exists.
+[SQL: INSERT INTO users (email, username, phone, name, hashed_password, surname, role, group_id, image, is_blocked, created_at, modified_at, id) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::roleenum, $8::UUID, $9::VARCHAR, $10::BOOLEAN, $11::TIMESTAMP WITH TIME ZONE, $12::TIMESTAMP WITH TIME ZONE, $13::UUID)]
+[parameters: ('vseslav_17@example.net', 'zkalinin', '+375291951765', 'John', '$2b$12$5GtuAy3xwzLwIwMlNRugdOK5F1e0c3L9u34PjSJppRrtgiZcNFlJi', 'Doe', 'USER', 'd9a83fd7-c45f-4c78-84eb-0922d6a5eec0', '/static/img/user.png', False, datetime.datetime(2024, 4, 29, 10, 32, 26, 616522), datetime.datetime(2024, 4, 29, 10, 32, 26, 616524), UUID('4a6d8413-dd24-4c87-9a04-d7e861d14cfc'))]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2024-04-29 13:32:26,630 - src.config.settings - INFO - Login request
+2024-04-29 13:32:26,869 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:26,877 - src.config.settings - INFO - Login request
+2024-04-29 13:32:26,913 - src.config.settings - ERROR - User not found in the database: non_exist
+2024-04-29 13:32:26,920 - src.config.settings - INFO - Login request
+2024-04-29 13:32:27,157 - src.config.settings - ERROR - User password don't match with existed
+2024-04-29 13:32:27,166 - src.config.settings - INFO - Login request
+2024-04-29 13:32:27,404 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:27,407 - src.config.settings - INFO - Refresh Token request
+2024-04-29 13:32:27,409 - src.config.settings - INFO - Refresh Token request
+2024-04-29 13:32:27,410 - src.config.settings - ERROR - token blacklisted already
+2024-04-29 13:32:27,415 - src.config.settings - INFO - Login request
+2024-04-29 13:32:27,653 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:27,656 - src.config.settings - INFO - Refresh Token request
+2024-04-29 13:32:27,693 - src.config.settings - INFO - reading current user
+2024-04-29 13:32:27,701 - src.config.settings - INFO - Login request
+2024-04-29 13:32:27,938 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:27,974 - src.config.settings - INFO - reading current user
+2024-04-29 13:32:27,981 - src.config.settings - INFO - Login request
+2024-04-29 13:32:28,223 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:28,226 - src.config.settings - ERROR - Token expired or other error: Not enough segments
+2024-04-29 13:32:28,232 - src.config.settings - INFO - Login request
+2024-04-29 13:32:28,474 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:28,479 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:28,688 - src.config.settings - INFO - User created
+2024-04-29 13:32:28,732 - src.config.settings - INFO - Login request
+2024-04-29 13:32:28,971 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:29,009 - src.config.settings - INFO - delete current user request
+2024-04-29 13:32:29,027 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:29,250 - src.config.settings - INFO - User created
+2024-04-29 13:32:29,301 - src.config.settings - INFO - Login request
+2024-04-29 13:32:29,545 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:29,581 - src.config.settings - INFO - delete current user request
+2024-04-29 13:32:29,599 - src.config.settings - INFO - Login request
+2024-04-29 13:32:29,645 - src.config.settings - ERROR - User not found in the database: volkovanadezhda
+2024-04-29 13:32:29,651 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:29,857 - src.config.settings - INFO - User created
+2024-04-29 13:32:29,899 - src.config.settings - INFO - Login request
+2024-04-29 13:32:30,136 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:30,186 - src.config.settings - INFO - updating current user
+2024-04-29 13:32:30,198 - src.config.settings - INFO - Login request
+2024-04-29 13:32:30,440 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:30,476 - src.config.settings - INFO - reading current user
+2024-04-29 13:32:30,481 - src.config.settings - INFO - Sign Up request
+2024-04-29 13:32:30,687 - src.config.settings - INFO - User created
+2024-04-29 13:32:30,727 - src.config.settings - INFO - Login request
+2024-04-29 13:32:30,966 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:31,003 - src.config.settings - INFO - updating current user
+2024-04-29 13:32:31,003 - src.config.settings - ERROR - no data to update
+2024-04-29 13:32:31,011 - src.config.settings - INFO - Login request
+2024-04-29 13:32:31,249 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:31,285 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:31,325 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,362 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,404 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,441 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,479 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,516 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,554 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,590 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,633 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,671 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,680 - src.config.settings - INFO - Login request
+2024-04-29 13:32:31,924 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:31,962 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:31,963 - src.config.settings - ERROR - User by specified id not found
+2024-04-29 13:32:31,971 - src.config.settings - INFO - Login request
+2024-04-29 13:32:32,213 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:32,251 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:32,261 - src.config.settings - INFO - Login request
+2024-04-29 13:32:32,501 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:32,548 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:32,563 - src.config.settings - INFO - Login request
+2024-04-29 13:32:32,819 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:32,887 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:32,913 - src.config.settings - INFO - Login request
+2024-04-29 13:32:33,217 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:33,292 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:33,310 - src.config.settings - INFO - Login request
+2024-04-29 13:32:33,607 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:33,657 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:33,659 - src.config.settings - ERROR - error with filtrating, more likely non-existing attribute: 'UserDB' object has no attribute 'fake_field'
+2024-04-29 13:32:33,667 - src.config.settings - INFO - Login request
+2024-04-29 13:32:33,918 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:33,956 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:33,996 - src.config.settings - INFO - patch user by id as admin
+2024-04-29 13:32:34,039 - src.config.settings - INFO - getting user by id as admin or moderator
+2024-04-29 13:32:34,048 - src.config.settings - INFO - Login request
+2024-04-29 13:32:34,292 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:34,341 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:34,398 - src.config.settings - INFO - patch user by id as admin
+2024-04-29 13:32:34,459 - src.config.settings - INFO - list users as admin or moderator
+2024-04-29 13:32:34,469 - src.config.settings - INFO - Login request
+2024-04-29 13:32:34,721 - src.config.settings - INFO - User logged in
+2024-04-29 13:32:34,768 - src.config.settings - INFO - upload image to s3 localstack request
+2024-04-29 13:32:35,335 - src.config.settings - ERROR - error while trying to create bucket if not exist: An error occurred (404) when calling the HeadBucket operation: Not Found

@@ -46,4 +46,3 @@ handler = logging.FileHandler(f'logs/{datetime.datetime.today().date()}_log.log'
 handler.setFormatter(formatter)
 
 logger.addHandler(handler)
-

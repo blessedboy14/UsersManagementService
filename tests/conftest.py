@@ -25,11 +25,15 @@ def create_fake_user():
     return generate_user()
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope='session', autouse=True)
 async def async_setup_and_tear_down(request):
     async with test_session_maker.get_engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        await conn.execute(insert(Group).values({'name': 'testing', 'id': 'd9a83fd7-c45f-4c78-84eb-0922d6a5eec0'}))
+        await conn.execute(
+            insert(Group).values(
+                {'name': 'testing', 'id': 'd9a83fd7-c45f-4c78-84eb-0922d6a5eec0'}
+            )
+        )
         await conn.execute(insert(UserDB).values(**base_user))
     yield
 
