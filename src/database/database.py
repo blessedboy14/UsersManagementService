@@ -21,8 +21,6 @@ class DatabaseSessionMaker:
         )
 
     async def close(self):
-        if self._engine is None:
-            raise Exception('DatabaseSessionMaker: engine is None')
         await self._engine.dispose()
 
         self._sessionmaker = None
@@ -30,8 +28,6 @@ class DatabaseSessionMaker:
 
     @contextlib.asynccontextmanager
     async def create_session(self) -> AsyncIterator[AsyncSession]:
-        if self._sessionmaker is None:
-            raise Exception('DatabaseSessionMaker: session maker is None')
         session = self._sessionmaker()
         try:
             yield session

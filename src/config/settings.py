@@ -39,10 +39,13 @@ SUPPORTED_TYPES = {'image/png': 'png', 'image/jpeg': 'jpg'}
 
 # logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.FileHandler(f'logs/{datetime.datetime.today().date()}_log.log')
+try:
+    handler = logging.FileHandler(f'logs/{datetime.datetime.today().date()}_log.log')
+except FileNotFoundError:
+    handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 
 logger.addHandler(handler)

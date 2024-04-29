@@ -38,10 +38,7 @@ class UserBase(BaseModel):
 
     @model_validator(mode='after')
     def validate_time(self):
-        if self.modified_at:
-            self.modified_at = datetime.datetime.now()
-        else:
-            self.modified_at = self.created_at
+        self.modified_at = datetime.datetime.now()
         return self
 
 

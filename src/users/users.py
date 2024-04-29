@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Query
 
@@ -25,14 +24,12 @@ async def get_current_user(
 ) -> User:
     logger.debug('fetching user from token')
     payload = decode_token(access_token)
-    if datetime.fromtimestamp(payload['exp']) < datetime.now():
-        raise_credential_exception('Token expired')
     user_id = payload.get('user_id')
     if user_id is None:
         raise_credential_exception('Token invalid')
     user = await service.get_user(user_id, session)
     if user is None:
-        raise_credential_exception('Token invalid')
+        raise_credential_exception("User don't exist")
     return user
 
 
@@ -115,11 +112,17 @@ async def patch_user(
         )
     to_update = await service.get_user(user_id, session)
     if to_update is None:
-        logger.error('no data provided to update')
+        logger.error('user not found')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='User not found'
         )
     updated_data = updated_user.model_dump(exclude_unset=True)
+    if not updated_data:
+        logger.error('no data to update')
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='No info provided or non-existing fields',
+        )
     patched_user = to_update.model_copy(update=updated_data)
     return await service.patch_user(patched_user, session)
 

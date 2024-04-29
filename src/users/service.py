@@ -19,11 +19,13 @@ from src.config.settings import settings, MAX_FILE_SIZE, SUPPORTED_TYPES, logger
 from src.utils.converters import convert_IN_to_DB_model
 
 
-async def get_user(user_id: str, session: AsyncSession) -> User:
+async def get_user(user_id: str, session: AsyncSession) -> User | None:
     logger.debug(f'getting user by id: {user_id}')
     user_db = (
         await session.scalars(select(UserDB).where(UserDB.id == user_id))
     ).first()
+    if user_db is None:
+        return None
     user = User.model_validate(user_db)
     return user
 

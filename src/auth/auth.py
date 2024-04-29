@@ -41,11 +41,6 @@ router = APIRouter()
 )
 async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()):
     logger.info('Login request')
-    if form_data.username is None:
-        logger.error('No username provided')
-        raise HTTPException(
-            status_code=401, detail='Please provide phone, email or username'
-        )
     user = LoginUser(login=form_data.username, password=form_data.password)
     return await login_user(user, session)
 
@@ -70,7 +65,7 @@ async def signup(
     except ValidationError as err:
         logger.error(f'Failed to create model from sign up input with err: {err}')
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=err.messages
+            status_code=status.HTTP_400_BAD_REQUEST, detail=repr(err.errors()[0]['msg'])
         )
     return await create_new_user(userIn, session, image)
 

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from aioredis import Redis
 from fastapi import HTTPException, UploadFile, File
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -134,17 +134,12 @@ async def create_new_user(
         hashed_user = await create_user(user, session)
         await session.commit()
         if image is not None:
-            try:
-                added_user = await get_by_email(user.email, session)
-                s3_filename = await upload_image(image, user.username)
-                added_user.image = s3_filename
-                await update_user(added_user, session)
-                await session.commit()
-            except Exception as e:
-                logger.error(f'Error with updating users image: {e}')
-                raise HTTPException(
-                    status_code=500, detail='Image uploading failed. {}'.format(e)
-                )
+            added_user = await get_by_email(user.email, session)
+            logger.info('uploading image when signup')
+            s3_filename = await upload_image(image, user.username)
+            added_user.image = s3_filename
+            await update_user(added_user, session)
+            await session.commit()
         logger.debug('user created without image')
         return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
@@ -153,9 +148,6 @@ async def create_new_user(
             status_code=400,
             detail=f'Integrity Error(e.g. duplicate unique key); msg: {e}',
         )
-    except SQLAlchemyError as e:
-        logger.error(f'unhandled sqlalchemy error: {e}')
-        raise HTTPException(status_code=400, detail=str(e))
 
 
 def _generate_reset_password_url(email: str, user_id: str):

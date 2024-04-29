@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
-
 PhoneNumber.phone_format = 'E164'
+special_chars = '~`!@#$%^&*()_-+={[}]|\:;"\'<,>.?/'
 
 
 class AuthUser(BaseModel):
@@ -41,6 +41,20 @@ class LoginUser(BaseModel):
 
 class UserIn(AuthUser):
     password: str = Field(min_length=8, max_length=128, examples=['your_password'])
+
+    @field_validator('password')
+    def check_password(cls, v):
+        v = str(v)
+        if (
+            not any(c.islower() for c in v)
+            or not any(c.isdigit() for c in v)
+            or not any(c in special_chars for c in v)
+        ):
+            raise ValueError(
+                'Password should contain at least 1 digit '
+                f'1 character from (a-z) and 1 special character from {special_chars}'
+            )
+        return v
 
 
 class UserInDB(AuthUser):
