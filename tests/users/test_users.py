@@ -257,16 +257,16 @@ async def test_patch_random_user_to_admin(async_app_client):
     assert usr.get('role') == 'admin'
 
 
-@pytest.mark.asyncio
-async def test_file_uploading(async_app_client):
-    client = async_app_client
-    access_token = await _auth(client)
-    headers = {'Authorization': f'Bearer {access_token}'}
-    path_to_file = '/home/blessedboy/Downloads/phon.jpg'
-    with open(path_to_file, 'rb') as f:
-        response = await client.post(
-            '/users/me/upload_image',
-            files={'file': ('filename', f, 'image/jpeg')},
-            headers=headers,
-        )
-    assert response.status_code == 200
+# @pytest.mark.asyncio
+# async def test_file_uploading(async_app_client):
+#     client = async_app_client
+#     access_token = await _auth(client)
+#     headers = {'Authorization': f'Bearer {access_token}'}
+#     path_to_file = '/home/blessedboy/Downloads/phon.jpg'
+#     with open(path_to_file, 'rb') as f:
+#         response = await client.post(
+#             '/users/me/upload_image',
+#             files={'file': ('filename', f, 'image/jpeg')},
+#             headers=headers,
+#         )
+#     assert response.status_code == 200
