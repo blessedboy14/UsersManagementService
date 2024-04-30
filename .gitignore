@@ -11,5 +11,5 @@ aws/
 volume/
 .idea/
 #alembic/versions/
-#logs/
+logs/
 .coverage
