@@ -57,3 +57,6 @@ jobs:
         alembic upgrade head
         alembic revision --autogenerate -m "Initial tables"
         pytest --cov=src tests/
+    - name: Check coverage and conditionally pass
+      run: |
+        coverage report --fail-under=80
