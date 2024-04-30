@@ -39,9 +39,6 @@ class DatabaseSessionMaker:
 
     @contextlib.asynccontextmanager
     async def create_connection(self) -> AsyncIterator[AsyncConnection]:
-        if self._engine is None:
-            raise Exception('DatabaseSessionMaker: engine is None')
-
         async with self._engine.begin() as conn:
             try:
                 yield conn

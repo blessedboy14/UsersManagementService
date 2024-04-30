@@ -12,3 +12,4 @@ volume/
 .idea/
 #alembic/versions/
 #logs/
+.coverage

@@ -64,6 +64,10 @@ async def _create_bucket_if_not_exists(s3):
     except ClientError as e:
         logger.error(f'error while trying to create bucket if not exist: {e}')
         await s3.create_bucket(Bucket=settings.bucket_name)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 async def upload_to_s3_bucket(content: BytesIO, filename: str) -> str:
