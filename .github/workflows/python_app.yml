@@ -25,7 +25,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.PASSWORD }}
           POSTGRES_DB: test_management_service
         ports:
-          - 5432:5432
+          - 5433:5432
       rabbitmq_manage:
         image: rabbitmq:3.10.7-management
         env:
