@@ -61,7 +61,6 @@ async def get_all_users(session: AsyncSession) -> list[UserDB]:
 async def _create_bucket_if_not_exists(s3):
     try:
         await s3.head_bucket(Bucket=settings.bucket_name)
-        x = 0
     except ClientError as e:
         logger.error(f'error while trying to create bucket if not exist: {e}')
         await s3.create_bucket(Bucket=settings.bucket_name)
