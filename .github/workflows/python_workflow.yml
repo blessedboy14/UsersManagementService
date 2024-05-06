@@ -68,6 +68,7 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
 
  test:
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
