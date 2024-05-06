@@ -1,7 +1,10 @@
+import os
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import insert
+from PIL import Image
 
 from src.database.models import UserDB, Group
 from src.database.database import get_session, Base
@@ -19,10 +22,18 @@ app.dependency_overrides[get_session] = get_test_session
 
 @pytest_asyncio.fixture
 async def async_app_client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url='https://localhost'
-    ) as cli:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url='https://localhost'
+                           ) as cli:
         yield cli
+
+
+@pytest_asyncio.fixture
+async def generate_jpg():
+    width = height = 128
+    solid_jpg = Image.new('RGB', (width, height), 'blue')
+    solid_jpg.save('test.jpg')
+    yield 'test.jpg'
+    os.remove('test.jpg')
 
 
 @pytest.fixture

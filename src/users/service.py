@@ -61,6 +61,7 @@ async def get_all_users(session: AsyncSession) -> list[UserDB]:
 async def _create_bucket_if_not_exists(s3):
     try:
         await s3.head_bucket(Bucket=settings.bucket_name)
+        x = 0
     except ClientError as e:
         logger.error(f'error while trying to create bucket if not exist: {e}')
         await s3.create_bucket(Bucket=settings.bucket_name)
@@ -70,7 +71,15 @@ async def _create_bucket_if_not_exists(s3):
         )
 
 
-async def upload_to_s3_bucket(content: BytesIO, filename: str) -> str:
+async def _delete_last_if_exceeds_10(s3, email):
+    objects = await s3.list_objects(Bucket=settings.bucket_name, Prefix=email)
+    if 'Contents' in objects and objects.get('Contents') and len(objects.get('Contents')) > 4:
+        content = objects.get('Contents')
+        to_delete = sorted(content, key=lambda x: x.get('LastModified'))[0]
+        await s3.delete_object(Bucket=settings.bucket_name, Key=to_delete['Key'])
+
+
+async def upload_to_s3_bucket(content: BytesIO, filename: str, username: str) -> str:
     session = aioboto3.Session()
     logger.debug('uploading file to bucket')
     async with session.client(
@@ -80,6 +89,7 @@ async def upload_to_s3_bucket(content: BytesIO, filename: str) -> str:
         aws_secret_access_key='test',
     ) as s3:
         await _create_bucket_if_not_exists(s3)
+        await _delete_last_if_exceeds_10(s3, username)
         try:
             await s3.upload_fileobj(content, settings.bucket_name, filename)
         except Exception as e:
@@ -201,5 +211,6 @@ async def upload_image(file: UploadFile, username: str) -> str:
     s3_filename = await upload_to_s3_bucket(
         io.BytesIO(file_bytes),
         f'{username}/{uuid.uuid4()}.{SUPPORTED_TYPES[file_type]}',
+        username
     )
     return s3_filename

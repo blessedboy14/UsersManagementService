@@ -112,9 +112,10 @@ async def test_create_with_integration_error(create_fake_user, async_app_client)
 
 
 @pytest.mark.asyncio
-async def test_create_with_image(create_fake_user, async_app_client):
+async def test_create_with_image(create_fake_user, async_app_client, generate_jpg):
     _, payload_with_pass = create_fake_user
-    with open('tests/auth/test.jpg', 'rb') as image:
+    image_path = generate_jpg
+    with open(image_path, 'rb') as image:
         files = {'image': image}
         response = await async_app_client.post(
             '/auth/signup', data=payload_with_pass, files=files

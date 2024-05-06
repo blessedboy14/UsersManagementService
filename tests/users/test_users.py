@@ -302,10 +302,10 @@ async def test_get_by_id_non_exist_id(
 
 
 @pytest.mark.asyncio
-async def test_file_uploading(async_app_client, auth_main_user):
+async def test_file_uploading(async_app_client, auth_main_user, generate_jpg):
     access_token = auth_main_user
     headers = {'Authorization': f'Bearer {access_token}'}
-    path_to_file = 'tests/auth/test.jpg'
+    path_to_file = generate_jpg
     with open(path_to_file, 'rb') as f:
         response = await async_app_client.post(
             '/users/me/upload_image',
