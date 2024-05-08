@@ -63,7 +63,7 @@ jobs:
           python-version: "3.10"
       - name: Run containers
         run: |
-          docker-compose.yaml up -d
+          docker-compose up -d
           docker ps
       - name: Install dependencies
         run: |
