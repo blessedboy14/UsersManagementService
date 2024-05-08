@@ -58,7 +58,7 @@ jobs:
     steps:
       - name: Run containers
         run: |
-          docker-compose up -d
+          docker-compose.yaml up -d
           docker ps
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
