@@ -24,7 +24,7 @@ jobs:
       - name: Build compose
         run: docker compose build
       - name: Run conpose
-        run: docker compose up --abort-on-container-exit --exit-code-from test_db rabbitmq_manage
+        run: docker compose up --abort-on-container-exit --exit-code-from rabbitmq_manage test_db
 
  lint:
     runs-on: ubuntu-latest
