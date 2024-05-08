@@ -68,4 +68,6 @@ services:
       -  RABBITMQ_HOST=rabbitmq_manage
       -  LOCALSTACK_HOST=localstack
       -  RABBITMQ_QUEUE=reset-password-stream
+      -  TEST_POSTGRES_HOST=test_db
+      -  TEST_DB_PORT=5432
 

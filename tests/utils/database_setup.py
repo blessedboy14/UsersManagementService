@@ -10,7 +10,7 @@ from src.auth.security import get_password_hash
 
 username = settings.username
 passw = settings.passw
-host = 'localhost:5433'
+host = f'{settings.test_postgres_host}:{settings.test_db_port}'
 database = settings.test_db
 
 string_url = f'postgresql+asyncpg://{username}:{passw}@{host}/{database}'

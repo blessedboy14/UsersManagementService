@@ -19,5 +19,6 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 RUN apk add libmagic
 
 COPY ./src /code/src
+COPY ./tests /code/tests
 
 CMD [ "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080" ]

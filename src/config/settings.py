@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     postgres_host: str = (
         os.getenv('POSTGRES_HOST') if os.getenv('POSTGRES_HOST') else 'localhost'
     )
+    test_postgres_host: str = (
+        os.getenv('TEST_POSTGRES_HOST') if os.getenv('TEST_POSTGRES_HOST') else 'localhost'
+    )
+    test_db_port: str = (
+        os.getenv('TEST_DB_PORT') if os.getenv('TEST_DB_PORT') else '5433'
+    )
     redis_host: str = (
         os.getenv('REDIS_HOST') if os.getenv('REDIS_HOST') else 'localhost'
     )
