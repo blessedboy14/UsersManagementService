@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
@@ -57,5 +60,8 @@ class TokenSchema(BaseModel):
 
 
 class ResetResponseSchema(BaseModel):
-    message: str
+    user_id: uuid.UUID
+    subject: str
+    body: str
     email: EmailStr
+    publish_time: datetime

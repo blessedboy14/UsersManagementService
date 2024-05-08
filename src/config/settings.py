@@ -10,8 +10,8 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    passw: str = os.getenv('pass')
-    username: str = os.getenv('name')
+    passw: str = os.getenv('pass') if os.getenv('pass') else 'error'
+    username: str = os.getenv('name') if os.getenv('name') else 'admin'
     postgres_host: str = (
         os.getenv('POSTGRES_HOST') if os.getenv('POSTGRES_HOST') else 'localhost'
     )

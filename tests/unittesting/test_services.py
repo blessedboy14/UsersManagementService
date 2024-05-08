@@ -98,7 +98,7 @@ async def test_send_reset_message(monkeypatch):
         ResetPasswordRequest(email='test@mail.ru'), AsyncSession()
     )
 
-    assert result.message == 'message for resetting sent to rabbitmq'
+    assert result.email == 'test@mail.ru'
 
 
 @pytest.mark.asyncio

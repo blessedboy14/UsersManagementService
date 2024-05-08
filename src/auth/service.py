@@ -171,13 +171,17 @@ async def send_reset_password_message(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
         )
-    message = {
-        'email': request.email,
-        'link': _generate_reset_password_url(request.email, is_exist.id),
-        'publish_time': json.dumps(datetime.utcnow().isoformat()),
-    }
-    logger.debug('sending message to rabbitmq queue')
-    publisher.publish_message(message)
-    return ResetResponseSchema(
-        message='message for resetting sent to rabbitmq', email=request.email
+    message = ResetResponseSchema(
+        user_id=is_exist.id,
+        subject=f'Resetting Password To Your Account: {request.email}',
+        body='Click this link to reset your password '
+             f'{_generate_reset_password_url(request.email, str(is_exist.id))}',
+        email=request.email,
+        publish_time=datetime.utcnow(),
     )
+    to_send = message.model_dump().copy()
+    to_send.update({'user_id': str(to_send['user_id']),
+                    'publish_time': json.dumps(to_send['publish_time'].isoformat())})
+    logger.debug('sending message to rabbitmq queue')
+    publisher.publish_message(to_send)
+    return message
