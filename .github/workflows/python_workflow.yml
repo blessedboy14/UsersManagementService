@@ -50,6 +50,5 @@ jobs:
           docker logs backend
       - name: Test with pytest and show coverage
         run: |
-          pip install pytest pytest-cov
-          pytest tests/ --cov-report term-missing --cov 
+          docker exec backend pytest
 
