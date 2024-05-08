@@ -64,4 +64,4 @@ class ResetResponseSchema(BaseModel):
     subject: str
     body: str
     email: EmailStr
-    publish_time: datetime
+    published_at: datetime

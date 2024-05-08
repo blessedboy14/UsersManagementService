@@ -177,11 +177,11 @@ async def send_reset_password_message(
         body='Click this link to reset your password '
              f'{_generate_reset_password_url(request.email, str(is_exist.id))}',
         email=request.email,
-        publish_time=datetime.utcnow(),
+        published_at=datetime.utcnow(),
     )
     to_send = message.model_dump().copy()
     to_send.update({'user_id': str(to_send['user_id']),
-                    'publish_time': json.dumps(to_send['publish_time'].isoformat())})
+                    'published_at': to_send['published_at'].isoformat()})
     logger.debug('sending message to rabbitmq queue')
     publisher.publish_message(to_send)
     return message
