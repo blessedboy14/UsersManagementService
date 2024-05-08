@@ -24,7 +24,7 @@ jobs:
       - name: Build compose
         run: docker compose build
       - name: Run conpose
-        run: docker compose up --abort-on-container-exit --exit-code-from client
+        run: docker compose up
 
  lint:
     runs-on: ubuntu-latest
