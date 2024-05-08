@@ -68,6 +68,7 @@ jobs:
         run: |
           docker ps -a
           docker logs backend
+          sleep 30s
       - name: Test with pytest and show coverage
         run: |
           docker exec backend pytest
