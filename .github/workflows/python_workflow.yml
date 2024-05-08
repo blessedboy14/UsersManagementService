@@ -49,8 +49,8 @@ jobs:
           docker ps -a
           docker logs backend
           sleep 30s
-          docker logs usersmanagementservice-test_db-1
-          docker logs usersmanagementservice-db-1
+          docker logs usersmanagementservice_test_db_1
+          docker logs usersmanagementservice_db_1
           docker ps
           docker ps -a
       - name: Test with pytest and show coverage
