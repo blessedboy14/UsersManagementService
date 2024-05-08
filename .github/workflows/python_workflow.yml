@@ -76,6 +76,4 @@ jobs:
           docker ps
       - name: Test with pytest and show coverage
         run: |
-          alembic upgrade head
-          alembic revision --autogenerate -m "Initial tables"
-          pytest tests/ --cov=src --cov-append || true
+          docker exec backend pytest --skip-auth
