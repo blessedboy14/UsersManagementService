@@ -64,7 +64,6 @@ jobs:
       - name: Run containers
         run: |
           docker-compose up -d
-          docker ps
       - name: Test worked containers
         run: |
           docker ps -a
