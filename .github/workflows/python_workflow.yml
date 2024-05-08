@@ -47,25 +47,25 @@ jobs:
  test:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      DOCKERHUB_ACCESS_TOKEN
-    services:
-      db:
-        image: postgres
-        env: 
-          POSTGRES_USER: ${{ secrets.USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.PASSWORD }}
-          POSTGRES_DB: test_management_service
-        ports:
-          - 5433:5432
-      rabbitmq_manage:
-        image: rabbitmq:3.10.7-management
-        env:
-          RABBITMQ_DEFAULT_USER: ${{ secrets.USERNAME }}
-          RABBITMQ_DEFAULT_PASS: ${{ secrets.PASSWORD }}
-        ports:
-          - 15672:15672
-          - 5672:5672
+    # environment:
+    #   DOCKERHUB_ACCESS_TOKEN
+    # services:
+    #   db:
+    #     image: postgres
+    #     env: 
+    #       POSTGRES_USER: ${{ secrets.USERNAME }}
+    #       POSTGRES_PASSWORD: ${{ secrets.PASSWORD }}
+    #       POSTGRES_DB: test_management_service
+    #     ports:
+    #       - 5433:5432
+    #   rabbitmq_manage:
+    #     image: rabbitmq:3.10.7-management
+    #     env:
+    #       RABBITMQ_DEFAULT_USER: ${{ secrets.USERNAME }}
+    #       RABBITMQ_DEFAULT_PASS: ${{ secrets.PASSWORD }}
+    #     ports:
+    #       - 15672:15672
+    #       - 5672:5672
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
