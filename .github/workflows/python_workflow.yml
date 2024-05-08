@@ -35,26 +35,8 @@ jobs:
 
  test:
     runs-on: ubuntu-latest
-    
-    # environment:
-    #   DOCKERHUB_ACCESS_TOKEN
-    # services:
-    #   db:
-    #     image: postgres
-    #     env: 
-    #       POSTGRES_USER: ${{ secrets.USERNAME }}
-    #       POSTGRES_PASSWORD: ${{ secrets.PASSWORD }}
-    #       POSTGRES_DB: test_management_service
-    #     ports:
-    #       - 5433:5432
-    #   rabbitmq_manage:
-    #     image: rabbitmq:3.10.7-management
-    #     env:
-    #       RABBITMQ_DEFAULT_USER: ${{ secrets.USERNAME }}
-    #       RABBITMQ_DEFAULT_PASS: ${{ secrets.PASSWORD }}
-    #     ports:
-    #       - 15672:15672
-    #       - 5672:5672
+    environment:
+      DOCKERHUB_ACCESS_TOKEN
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
@@ -64,17 +46,16 @@ jobs:
       - name: Run containers
         run: |
           docker-compose up -d
-          docker ps
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest pytest-cov alembic poetry
-          poetry export -f requirements.txt --output requirements.txt --without-hashes
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test worked containers
         run: |
           docker ps -a
           docker logs backend
+          sleep 30s
+          docker logs usersmanagementservice_test_db_1
+          docker logs usersmanagementservice_db_1
+          docker ps
+          docker ps -a
       - name: Test with pytest and show coverage
         run: |
-          docker exec backend pytest --skip-auth
+          docker exec backend pytest
+
