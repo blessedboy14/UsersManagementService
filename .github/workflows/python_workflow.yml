@@ -65,16 +65,10 @@ jobs:
         run: |
           docker-compose up -d
           docker ps
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest pytest-cov alembic poetry
-          poetry export -f requirements.txt --output requirements.txt --without-hashes
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test worked containers
         run: |
           docker ps -a
           docker logs backend
       - name: Test with pytest and show coverage
         run: |
-          docker exec backend pytest --skip-auth
+          docker exec backend pytest
