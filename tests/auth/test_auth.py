@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from src.config.settings import settings
 from src.main import app
 from tests.utils.fake_utils import generate_user
 from tests.utils.database_setup import existed_user
@@ -134,7 +135,7 @@ async def test_create_with_bad_passw(create_fake_user, async_app_client):
 @pytest.mark.asyncio
 async def test_login(async_app_client):
     response = await async_app_client.post(
-        '/auth/login', data={'username': 'blessedboy', 'password': '12345678'}
+        '/auth/login', data={'username': settings.username, 'password': '12345678'}
     )
     assert response.status_code == 200
     assert response.json().get('type') == 'bearer'
