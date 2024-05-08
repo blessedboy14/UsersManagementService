@@ -12,17 +12,6 @@ permissions:
   contents: read
 
 jobs:
- build:
-    runs-on: ubuntu-latest
-    name: Trying to create docker compose    
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Run compose
-        run: docker-compose up -d
 
  lint:
     runs-on: ubuntu-latest
@@ -45,8 +34,8 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
 
  test:
-    needs: build
     runs-on: ubuntu-latest
+    
     # environment:
     #   DOCKERHUB_ACCESS_TOKEN
     # services:
@@ -67,6 +56,10 @@ jobs:
     #       - 15672:15672
     #       - 5672:5672
     steps:
+      - name: Run containers
+        run: |
+          docker-compose up -d
+          docker ps
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
