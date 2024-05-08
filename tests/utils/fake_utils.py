@@ -16,12 +16,13 @@ def fake_phone():
 
 def fake_password():
     min, max = 8, 20
-    chars = string.ascii_lowercase + string.digits + string.punctuation
+    punctuation = '@#$%^&\'~"+=_'
+    chars = string.ascii_lowercase + string.digits + punctuation
     pasw = ''
     pasw += (
         random.choice(string.ascii_lowercase)
         + random.choice(string.digits)
-        + random.choice(string.punctuation)
+        + random.choice(punctuation)
     )
     for _ in range(random.randint(min, max) - 3):
         pasw += chars[random.randint(0, len(chars) - 1)]

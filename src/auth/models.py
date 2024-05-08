@@ -1,14 +1,13 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 PhoneNumber.phone_format = 'E164'
-special_chars = '~`!@#$%^&*()_-+={[}]|\:;"\'<,>.?/'
 
 
 class AuthUser(BaseModel):
-    email: EmailStr = Field(default='example@example.com')
+    email: EmailStr = Field()
     username: str = Field(pattern='^[A-Za-z0-9-_]+$', min_length=3, max_length=40)
-    phone: PhoneNumber = Field(default='+375291234567')
+    phone: PhoneNumber = Field()
 
     model_config = {
         'json_schema_extra': {
@@ -40,21 +39,10 @@ class LoginUser(BaseModel):
 
 
 class UserIn(AuthUser):
-    password: str = Field(min_length=8, max_length=128, examples=['your_password'])
-
-    @field_validator('password')
-    def check_password(cls, v):
-        v = str(v)
-        if (
-            not any(c.islower() for c in v)
-            or not any(c.isdigit() for c in v)
-            or not any(c in special_chars for c in v)
-        ):
-            raise ValueError(
-                'Password should contain at least 1 digit '
-                f'1 character from (a-z) and 1 special character from {special_chars}'
-            )
-        return v
+    model_config = ConfigDict(regex_engine='python-re')
+    password: str = Field(
+        pattern=r'[a-z0-9@#$%^&\'~\"+=_]{8,}', min_length=8, max_length=128
+    )
 
 
 class UserInDB(AuthUser):

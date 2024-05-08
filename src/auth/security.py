@@ -5,12 +5,13 @@ from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
 from src.config.settings import logger
+from src.config.settings import settings
 from src.auth.models import UserIn, UserInDB
 
-SECRET_KEY = 'H45SHvuxLkgEKzKt1HyMXSyt1Vtl2YL4b5zUf3q46Ou+KrZYq+yD7x2bTM+N3W0lqxqGRsdky4xG+hIx+fb67A=='
-ALGORITHM = 'HS256'
-ACCESS_EXP = timedelta(minutes=60)
-REFRESH_EXP = timedelta(days=31)
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_EXP = timedelta(minutes=settings.access_exp)
+REFRESH_EXP = timedelta(days=settings.refresh_exp)
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')

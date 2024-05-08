@@ -12,13 +12,31 @@ load_dotenv()
 class Settings(BaseSettings):
     passw: str = os.getenv('pass')
     username: str = os.getenv('name')
-    postgres_host: str = os.getenv('POSTGRES_HOST')
-    redis_host: str = os.getenv('REDIS_HOST')
-    rabbit_host: str = os.getenv('RABBITMQ_HOST')
-    bucket_name: str = os.getenv('BUCKET_NAME')
-    localstack_host: str = os.getenv('LOCALSTACK_HOST')
-    rabbit_queue: str = os.getenv('RABBITMQ_QUEUE')
+    postgres_host: str = (
+        os.getenv('POSTGRES_HOST') if os.getenv('POSTGRES_HOST') else 'localhost'
+    )
+    redis_host: str = (
+        os.getenv('REDIS_HOST') if os.getenv('REDIS_HOST') else 'localhost'
+    )
+    rabbit_host: str = (
+        os.getenv('RABBITMQ_HOST') if os.getenv('RABBITMQ_HOST') else 'localhost'
+    )
+    bucket_name: str = (
+        os.getenv('BUCKET_NAME') if os.getenv('BUCKET_NAME') else 'images-storage'
+    )
+    localstack_host: str = (
+        os.getenv('LOCALSTACK_HOST') if os.getenv('LOCALSTACK_HOST') else 'localhost'
+    )
+    rabbit_queue: str = (
+        os.getenv('RABBITMQ_QUEUE')
+        if os.getenv('RABBITMQ_QUEUE')
+        else 'reset-password-stream'
+    )
     test_db: str = 'test_management_service'
+    secret_key: str = os.getenv('SECRET_KEY') if os.getenv('SECRET_KEY') else '<KEY>'
+    algorithm: str = os.getenv('ALGORITHM') if os.getenv('ALGORITHM') else 'HS256'
+    access_exp: int = os.getenv('ACCESS_EXP') if os.getenv('ACCESS_EXP') else 60
+    refresh_exp: int = os.getenv('REFRESH_EXP') if os.getenv('REFRESH_EXP') else 31
 
 
 settings = Settings()

@@ -72,7 +72,11 @@ async def _create_bucket_if_not_exists(s3):
 
 async def _delete_last_if_exceeds_10(s3, email):
     objects = await s3.list_objects(Bucket=settings.bucket_name, Prefix=email)
-    if 'Contents' in objects and objects.get('Contents') and len(objects.get('Contents')) > 4:
+    if (
+        'Contents' in objects
+        and objects.get('Contents')
+        and len(objects.get('Contents')) > 4
+    ):
         content = objects.get('Contents')
         to_delete = sorted(content, key=lambda x: x.get('LastModified'))[0]
         await s3.delete_object(Bucket=settings.bucket_name, Key=to_delete['Key'])
@@ -210,6 +214,6 @@ async def upload_image(file: UploadFile, username: str) -> str:
     s3_filename = await upload_to_s3_bucket(
         io.BytesIO(file_bytes),
         f'{username}/{uuid.uuid4()}.{SUPPORTED_TYPES[file_type]}',
-        username
+        username,
     )
     return s3_filename
