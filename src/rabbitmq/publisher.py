@@ -16,11 +16,17 @@ class Publisher:
     def __init__(self, config: dict):
         self._config = config
         self._queue_name = self._config['q_name']
-        self._connection = self.create_connection()
-        self._channel = self._connection.channel()
-        self._publish_q = self._channel.queue_declare(queue=self._queue_name)
+        self._connection = None
+        self._channel = None
+
+    def _init_all(self):
+        if self._connection is None:
+            self._connection = self.create_connection()
+            self._channel = self._connection.channel()
+            self._publish_q = self._channel.queue_declare(queue=self._queue_name)
 
     def publish_message(self, message: dict):
+        self._init_all()
         logger.debug(f'publishing message: {message}')
         self._channel.basic_publish(
             exchange='',

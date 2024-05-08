@@ -70,6 +70,4 @@ services:
       -  RABBITMQ_QUEUE=reset-password-stream
       -  TEST_POSTGRES_HOST=test_db
       -  TEST_DB_PORT=5432
-    depends_on:
-      - rabbitmq_manage
 
