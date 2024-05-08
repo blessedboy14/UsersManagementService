@@ -78,6 +78,9 @@ jobs:
           pip install pytest pytest-cov alembic poetry
           poetry export -f requirements.txt --output requirements.txt --without-hashes
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Test worked containers
+        run: |
+          docker ps
       - name: Test with pytest and show coverage
         run: |
           alembic upgrade head
