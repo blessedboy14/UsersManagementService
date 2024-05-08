@@ -74,6 +74,7 @@ jobs:
       - name: Test worked containers
         run: |
           docker ps -a
+          docker logs backend
       - name: Test with pytest and show coverage
         run: |
           docker exec backend pytest --skip-auth
