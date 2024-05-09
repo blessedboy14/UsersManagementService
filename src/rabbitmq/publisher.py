@@ -2,7 +2,6 @@ import json
 import pika
 from src.config.settings import settings, logger
 
-
 conf = {
     'host': settings.rabbit_host,
     'port': '5672',
@@ -23,7 +22,14 @@ class Publisher:
         if self._connection is None:
             self._connection = self.create_connection()
             self._channel = self._connection.channel()
-            self._publish_q = self._channel.queue_declare(queue=self._queue_name)
+            self._publish_q = self._channel.queue_declare(queue=self._queue_name,
+                                                          durable=True,
+                                                          arguments={
+                                                              'x-dead-letter-exchange': 'dlx_exchange',
+                                                              'x-dead-letter-routing-key': 'dlx_key',
+                                                              'x-queue-type': 'quorum',
+                                                              'x-delivery-limit': 5
+                                                          })
 
     def publish_message(self, message: dict):
         self._init_all()

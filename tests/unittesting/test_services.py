@@ -70,8 +70,8 @@ async def test_get_user():
     usr = LoginUser(login=existed_user['username'], password=existed_user['password'])
     session = await anext(test_session_maker.create_session().gen)
     result = await get_user(usr, session)
-    assert result.username == existed_user['username']
     await session.close()
+    assert result.username == existed_user['username']
 
 
 @pytest.mark.asyncio
