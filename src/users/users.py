@@ -143,7 +143,10 @@ async def list_users(
     order_by: OrderByEnum = OrderByEnum.DESC,
 ):
     logger.info('list users as admin or moderator')
-    return await service.filter_setup(
+    # return await service.filter_setup(
+    #     cur_user, session, page, limit, filter_by_name, sort_by, order_by
+    # )
+    return await service.fetch_filtered_users(
         cur_user, session, page, limit, filter_by_name, sort_by, order_by
     )
 

@@ -6,7 +6,7 @@ import aioboto3
 import magic
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, UploadFile
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -73,9 +73,9 @@ async def _create_bucket_if_not_exists(s3):
 async def _delete_last_if_exceeds_10(s3, email):
     objects = await s3.list_objects(Bucket=settings.bucket_name, Prefix=email)
     if (
-        'Contents' in objects
-        and objects.get('Contents')
-        and len(objects.get('Contents')) > 4
+            'Contents' in objects
+            and objects.get('Contents')
+            and len(objects.get('Contents')) > 4
     ):
         content = objects.get('Contents')
         to_delete = sorted(content, key=lambda x: x.get('LastModified'))[0]
@@ -86,10 +86,10 @@ async def upload_to_s3_bucket(content: BytesIO, filename: str, username: str) ->
     session = aioboto3.Session()
     logger.debug('uploading file to bucket')
     async with session.client(
-        's3',
-        endpoint_url=f'http://{settings.localstack_host}:4566',
-        aws_access_key_id='test',
-        aws_secret_access_key='test',
+            's3',
+            endpoint_url=f'http://{settings.localstack_host}:4566',
+            aws_access_key_id='test',
+            aws_secret_access_key='test',
     ) as s3:
         await _create_bucket_if_not_exists(s3)
         await _delete_last_if_exceeds_10(s3, username)
@@ -114,59 +114,12 @@ async def patch_user(user_data: User, db_session: AsyncSession) -> User:
         await db_session.close()
 
 
-def filter_users(
-    users: list[UserDB],
-    page: int = 1,
-    limit: int = 30,
-    filter_by_name: str = '',
-    sort_by: str = 'username',
-    order_by: str = 'desc',
-) -> list[UserDB]:
-    page -= 1
-    start = page * limit
-    to_filter = users
+def _is_uuid_valid(uuid_str: str) -> bool:
     try:
-        filtered = list(
-            filter(
-                lambda u: filter_by_name.lower() in u.name.lower()
-                or filter_by_name.lower() in u.surname.lower(),
-                to_filter,
-            )
-        )
-        filtered = sorted(
-            filtered,
-            key=lambda u: getattr(u, sort_by),
-            reverse=True if order_by == 'desc' else False,
-        )
-        filtered = filtered[start : start + limit]
-        return filtered
-    except Exception as e:
-        logger.error(f'error with filtrating, more likely non-existing attribute: {e}')
-        raise HTTPException(status_code=400, detail='Invalid filtration params')
-
-
-async def filter_setup(
-    cur_user: User,
-    session: AsyncSession,
-    page: int = 1,
-    limit: int = 30,
-    filter_by_name: str = '',
-    sort_by: str = 'username',
-    order_by: str = 'desc',
-) -> list[UserDB]:
-    if cur_user.role is RoleEnum.USER:
-        logger.error("can't read user's as user")
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
-        )
-    if cur_user.role is RoleEnum.MODERATOR:
-        moderator_group = await get_cur_user_group(cur_user.group_id, session)
-        return filter_users(
-            moderator_group.users, page, limit, filter_by_name, sort_by, order_by
-        )
-    if cur_user.role is RoleEnum.ADMIN:
-        all_users = await get_all_users(session)
-        return filter_users(all_users, page, limit, filter_by_name, sort_by, order_by)
+        _ = uuid.UUID(uuid_str)
+        return True
+    except ValueError:
+        return False
 
 
 async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
@@ -175,10 +128,14 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
         )
+    if not _is_uuid_valid(user_id):
+        logger.error(f'user id {user_id} is not valid')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail='Incorrect id passed')
     if cur_user.role is RoleEnum.MODERATOR:
-        cur_group = await get_cur_user_group(cur_user.group_id, session)
-        users_in_group = cur_group.users
-        found = [user for user in users_in_group if str(user.id) == user_id]
+        found = list(await session.scalars(select(UserDB).
+                                           filter(UserDB.id == user_id,
+                                                  UserDB.group_id == cur_user.group_id)))
         if not found:
             logger.error('User by specified id not found')
             raise HTTPException(
@@ -186,8 +143,8 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
             )
         return found[0]
     if cur_user.role is RoleEnum.ADMIN:
-        all_users = await get_all_users(session)
-        found = [user for user in all_users if str(user.id) == user_id]
+        found = list(await session.scalars(select(UserDB).
+                                           where(UserDB.id == user_id)))
         if not found:
             logger.error('User by specified id not found')
             raise HTTPException(
@@ -217,3 +174,45 @@ async def upload_image(file: UploadFile, username: str) -> str:
         username,
     )
     return s3_filename
+
+
+async def fetch_filtered_users(
+        user: User,
+        session: AsyncSession,
+        page: int = 1,
+        limit: int = 30,
+        filter_by_name: str = '',
+        sort_by: str = 'username',
+        order_by: str = 'desc',
+) -> list[UserDB]:
+    result_list = []
+    if user.role is RoleEnum.USER:
+        logger.error("can't read user's as user")
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
+        )
+    page = page - 1
+    start = page * limit
+    if sort_by not in UserDB.__dict__:
+        logger.error('non-existed sort key')
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Sort key don't exist"
+        )
+    if user.role is RoleEnum.MODERATOR:
+        result_list = await session.scalars(
+            select(UserDB)
+            .where(UserDB.group_id == user.group_id)
+            .filter(UserDB.name.like(f'%{filter_by_name}%'))
+            .offset(start)
+            .limit(limit)
+            .order_by(text(f'{sort_by} {order_by}'))
+        )
+    if user.role is RoleEnum.ADMIN:
+        result_list = await session.scalars(
+            select(UserDB)
+            .filter(UserDB.name.like(f'%{filter_by_name}%'))
+            .offset(start)
+            .limit(limit)
+            .order_by(text(f'{sort_by} {order_by}'))
+        )
+    return result_list
