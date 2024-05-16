@@ -73,9 +73,9 @@ async def _create_bucket_if_not_exists(s3):
 async def _delete_last_if_exceeds_10(s3, email):
     objects = await s3.list_objects(Bucket=settings.bucket_name, Prefix=email)
     if (
-            'Contents' in objects
-            and objects.get('Contents')
-            and len(objects.get('Contents')) > 4
+        'Contents' in objects
+        and objects.get('Contents')
+        and len(objects.get('Contents')) > 4
     ):
         content = objects.get('Contents')
         to_delete = sorted(content, key=lambda x: x.get('LastModified'))[0]
@@ -86,10 +86,10 @@ async def upload_to_s3_bucket(content: BytesIO, filename: str, username: str) ->
     session = aioboto3.Session()
     logger.debug('uploading file to bucket')
     async with session.client(
-            's3',
-            endpoint_url=f'http://{settings.localstack_host}:4566',
-            aws_access_key_id='test',
-            aws_secret_access_key='test',
+        's3',
+        endpoint_url=f'http://{settings.localstack_host}:4566',
+        aws_access_key_id='test',
+        aws_secret_access_key='test',
     ) as s3:
         await _create_bucket_if_not_exists(s3)
         await _delete_last_if_exceeds_10(s3, username)
@@ -130,12 +130,17 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
         )
     if not _is_uuid_valid(user_id):
         logger.error(f'user id {user_id} is not valid')
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail='Incorrect id passed')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='Incorrect id passed'
+        )
     if cur_user.role is RoleEnum.MODERATOR:
-        found = list(await session.scalars(select(UserDB).
-                                           filter(UserDB.id == user_id,
-                                                  UserDB.group_id == cur_user.group_id)))
+        found = list(
+            await session.scalars(
+                select(UserDB).filter(
+                    UserDB.id == user_id, UserDB.group_id == cur_user.group_id
+                )
+            )
+        )
         if not found:
             logger.error('User by specified id not found')
             raise HTTPException(
@@ -143,8 +148,7 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
             )
         return found[0]
     if cur_user.role is RoleEnum.ADMIN:
-        found = list(await session.scalars(select(UserDB).
-                                           where(UserDB.id == user_id)))
+        found = list(await session.scalars(select(UserDB).where(UserDB.id == user_id)))
         if not found:
             logger.error('User by specified id not found')
             raise HTTPException(
@@ -177,13 +181,13 @@ async def upload_image(file: UploadFile, username: str) -> str:
 
 
 async def fetch_filtered_users(
-        user: User,
-        session: AsyncSession,
-        page: int = 1,
-        limit: int = 30,
-        filter_by_name: str = '',
-        sort_by: str = 'username',
-        order_by: str = 'desc',
+    user: User,
+    session: AsyncSession,
+    page: int = 1,
+    limit: int = 30,
+    filter_by_name: str = '',
+    sort_by: str = 'username',
+    order_by: str = 'desc',
 ) -> list[UserDB]:
     result_list = []
     if user.role is RoleEnum.USER:
