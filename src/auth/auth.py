@@ -13,13 +13,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr, ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
-from src.auth.models import (
+from src.auth.schemas import (
     UserIn,
     LoginUser,
     TokenSchema,
     ResetPasswordRequest,
     ResponseUser,
-    ResetResponseSchema,
+    ResetPasswordResponse,
 )
 from src.config.settings import logger
 from src.dependencies.core import DBSession, Redis
@@ -84,7 +84,7 @@ async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
 @router.post(
     '/reset-password',
     status_code=status.HTTP_200_OK,
-    response_model=ResetResponseSchema,
+    response_model=ResetPasswordResponse,
     summary='Reset Your Password',
 )
 async def reset_password(request: ResetPasswordRequest, session: DBSession):

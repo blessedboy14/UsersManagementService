@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service
 from src.auth.service import login_user, get_user, send_reset_password_message
-from src.auth.models import TokenSchema, LoginUser, ResetPasswordRequest
+from src.auth.schemas import TokenSchema, LoginUser, ResetPasswordRequest
 from src.database.database import get_session
 from src.database.models import UserDB
 from src.auth.security import get_password_hash, create_access_jwt

@@ -9,7 +9,7 @@ PhoneNumber.phone_format = 'E164'
 
 class AuthUser(BaseModel):
     email: EmailStr = Field()
-    username: str = Field(pattern='^[A-Za-z0-9-_]+$', min_length=3, max_length=40)
+    username: str = Field(min_length=3, max_length=40)
     phone: PhoneNumber = Field()
 
     model_config = {
@@ -65,3 +65,8 @@ class ResetResponseSchema(BaseModel):
     body: str
     email: EmailStr
     published_at: datetime
+
+
+class ResetPasswordResponse(BaseModel):
+    message: str
+    email: str

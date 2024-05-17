@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from src.auth.models import (
+from src.auth.schemas import (
     LoginUser,
     UserIn,
     TokenSchema,
@@ -15,6 +15,7 @@ from src.auth.models import (
     ResetPasswordRequest,
     ResetResponseSchema,
     UserInDB,
+    ResetPasswordResponse,
 )
 from src.auth.security import (
     verify_password,
@@ -46,13 +47,13 @@ async def get_by_email(email: str, db_session: AsyncSession) -> UserDB:
 
 
 async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema:
-    db_model = await get_user(userIn, db_session)
-    if db_model is not None:
-        if not db_model.is_blocked:
-            if verify_password(userIn.password, db_model.hashed_password):
-                data = {'user_id': db_model.id.hex}
+    user = await get_user(userIn, db_session)
+    if user is not None:
+        if not user.is_blocked:
+            if verify_password(userIn.password, user.hashed_password):
+                data = {'user_id': user.id.hex}
                 refresh_token = create_refresh_jwt(data)
-                data.update({'group_id': str(db_model.group_id)})
+                data.update({'group_id': str(user.group_id)})
                 access_token = create_access_jwt(data)
                 logger.info('User logged in')
                 return TokenSchema(
@@ -188,4 +189,6 @@ async def send_reset_password_message(
     )
     logger.debug('sending message to rabbitmq queue')
     publisher.publish_message(to_send)
-    return message
+    return ResetPasswordResponse(
+        message='Reset link was sent to your email', email=request.email
+    )

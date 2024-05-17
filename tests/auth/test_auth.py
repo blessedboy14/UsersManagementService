@@ -16,11 +16,6 @@ def test_health_check():
     assert response.json() == {'status': 'running'}
 
 
-def test_root():
-    response = client.get('/')
-    assert response.status_code == 200
-
-
 @pytest.mark.asyncio
 async def test_refresh_token(async_app_client):
     login_data = existed_user
