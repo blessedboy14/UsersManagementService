@@ -21,6 +21,12 @@ app.dependency_overrides[get_session] = get_test_session
 
 
 @pytest_asyncio.fixture
+async def get_async_test_session():
+    async with test_session_maker.create_session() as session:
+        yield session
+
+
+@pytest_asyncio.fixture
 async def async_app_client():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url='https://localhost'

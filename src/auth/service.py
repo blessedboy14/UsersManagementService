@@ -51,8 +51,9 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
         if not db_model.is_blocked:
             if verify_password(userIn.password, db_model.hashed_password):
                 data = {'user_id': db_model.id.hex}
-                access_token = create_access_jwt(data)
                 refresh_token = create_refresh_jwt(data)
+                data.update({'group_id': str(db_model.group_id)})
+                access_token = create_access_jwt(data)
                 logger.info('User logged in')
                 return TokenSchema(
                     message='Logged in successfully',

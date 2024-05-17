@@ -1,8 +1,3 @@
-from typing import Annotated
-
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 from src.database.database import DatabaseSessionMaker
 from src.users.models import RoleEnum
@@ -30,6 +25,3 @@ existed_user = {'username': username, 'password': '12345678'}
 async def get_test_session():
     async with test_session_maker.create_session() as session:
         yield session
-
-
-TestDBSession = Annotated[AsyncSession, Depends(get_test_session)]

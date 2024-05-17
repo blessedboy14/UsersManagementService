@@ -15,7 +15,7 @@ from src.rabbitmq.publisher import publisher
 from src.users import users
 from src.users.service import _create_bucket_if_not_exists, upload_image
 from src.users.users import get_current_user
-from tests.utils.database_setup import existed_user, test_session_maker
+from tests.utils.database_setup import existed_user
 
 
 @pytest.mark.asyncio
@@ -66,9 +66,9 @@ async def test_login_service(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_user():
+async def test_get_user(get_async_test_session):
     usr = LoginUser(login=existed_user['username'], password=existed_user['password'])
-    session = await anext(test_session_maker.create_session().gen)
+    session = get_async_test_session
     result = await get_user(usr, session)
     await session.close()
     assert result.username == existed_user['username']
@@ -111,8 +111,8 @@ async def test_fetch_user_from_token_without_id():
 
 
 @pytest.mark.asyncio
-async def test_fetch_non_exist_id_from_token():
-    session = await anext(test_session_maker.create_session().gen)
+async def test_fetch_non_exist_id_from_token(get_async_test_session):
+    session = get_async_test_session
     fake_id = str(uuid.uuid4())
     fake_token = create_access_jwt({'user_id': fake_id})
     try:
