@@ -43,6 +43,9 @@ jobs:
       - name: Run containers
         run: |
           docker-compose --env-file .env.test up -d
+      - name: Wait until rabbitmq is up
+        run: |
+          sleep 20s
       - name: Test with pytest and show coverage
         run: |
           docker exec backend pytest
