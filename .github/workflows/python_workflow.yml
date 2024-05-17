@@ -43,15 +43,6 @@ jobs:
       - name: Run containers
         run: |
           docker-compose --env-file .env.test up -d
-      - name: Test worked containers
-        run: |
-          docker ps -a
-          docker logs backend
-          sleep 30s
-          docker logs usersmanagementservice_test_db_1
-          docker logs usersmanagementservice_db_1
-          docker ps
-          docker ps -a
       - name: Test with pytest and show coverage
         run: |
           docker exec backend pytest
