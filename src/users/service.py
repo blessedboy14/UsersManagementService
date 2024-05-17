@@ -70,7 +70,7 @@ async def _create_bucket_if_not_exists(s3):
         )
 
 
-async def _delete_last_if_exceeds_10(s3, email):
+async def _delete_last_if_exceeds_5(s3, email):
     objects = await s3.list_objects(Bucket=settings.bucket_name, Prefix=email)
     if (
         'Contents' in objects
@@ -92,7 +92,7 @@ async def upload_to_s3_bucket(content: BytesIO, filename: str, username: str) ->
         aws_secret_access_key='test',
     ) as s3:
         await _create_bucket_if_not_exists(s3)
-        await _delete_last_if_exceeds_10(s3, username)
+        await _delete_last_if_exceeds_5(s3, username)
         try:
             await s3.upload_fileobj(content, settings.bucket_name, filename)
         except Exception as e:
