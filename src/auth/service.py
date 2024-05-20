@@ -34,9 +34,9 @@ from src.rabbitmq.publisher import publisher
 
 async def create_user(user: UserIn, db_session: AsyncSession) -> UserInDB:
     hashed_user = hash_model(user)
-    db_user = convert_AUTH_to_DB(hashed_user)
-    db_session.add(db_user)
-    logger.info('User created')
+    hashed_database_model = convert_AUTH_to_DB(hashed_user)
+    db_session.add(hashed_database_model)
+    logger.info(f'user "{user.username}" created')
     return hashed_user
 
 
@@ -55,7 +55,7 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                 refresh_token = create_refresh_jwt(data)
                 data.update({'group_id': str(user.group_id)})
                 access_token = create_access_jwt(data)
-                logger.info('User logged in')
+                logger.info(f'user "{userIn.login}" logged in')
                 return TokenSchema(
                     message='Logged in successfully',
                     access_token=access_token,
@@ -88,7 +88,7 @@ async def get_user(userIn: LoginUser, db_session: AsyncSession) -> UserDB:
 
 async def is_blacklisted(token: str, redis: Redis) -> bool:
     blacklisted = await redis.get(token)
-    logger.debug('blacklisting check')
+    logger.debug('Checking token blacklist status')
     if blacklisted:
         return True
     return False
@@ -96,7 +96,7 @@ async def is_blacklisted(token: str, redis: Redis) -> bool:
 
 async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
-        logger.error('token blacklisted already')
+        logger.error('Token is defined as blacklisted')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid refresh token(blacklisted)',
@@ -105,7 +105,6 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
     user_id = payload.get('user_id')
     token_mode = payload.get('mode')
     if token_mode and token_mode == 'refresh_token':
-        logger.debug(f'process correct refresh token for user id: {user_id}')
         await blacklist_token(token, redis)
         data = {'user_id': user_id}
         access_token = create_access_jwt(data)
@@ -117,12 +116,12 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
             type='bearer',
         )
     else:
-        logger.error('not refresh token(invalid payload)')
+        logger.error("provided token isn't refresh token(invalid payload)")
         raise HTTPException(status_code=401, detail='Not a refresh token')
 
 
 async def blacklist_token(token: str, redis: Redis):
-    logger.debug('blacklisting token now')
+    logger.debug('Attempt to blacklist token with redis')
     await redis.set(token, 'blacklisted')
 
 
@@ -136,12 +135,15 @@ async def create_new_user(
         await session.commit()
         if image is not None:
             added_user = await get_by_email(user.email, session)
-            logger.info('uploading image when signup')
+            logger.info(
+                f'user "{user.username}" created with image, trying to upload image'
+            )
             s3_filename = await upload_image(image, user.username)
             added_user.image = s3_filename
             await update_user(added_user, session)
             await session.commit()
-        logger.debug('user created without image')
+            logger.info(f'image uploaded for user "{user.username}"')
+        logger.debug(f'user "{user.username}" created without image')
         return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
         logger.error(f'integrity error, unique already exists: {e}')

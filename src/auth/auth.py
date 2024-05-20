@@ -40,7 +40,7 @@ router = APIRouter()
     summary='Login',
 )
 async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()):
-    logger.info('Login request')
+    logger.info(f'login request from {form_data.username}')
     user = LoginUser(login=form_data.username, password=form_data.password)
     return await login_user(user, session)
 
@@ -59,11 +59,11 @@ async def signup(
     session: DBSession,
     image: UploadFile = File(None),
 ):
-    logger.info('Sign Up request')
+    logger.info(f'sign up request from {username}')
     try:
         userIn = UserIn(email=email, phone=phone, password=password, username=username)
     except ValidationError as err:
-        logger.error(f'Failed to create model from sign up input with err: {err}')
+        logger.error(f'failed to create model from sign up input with err: {err}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=repr(err.errors()[0]['msg'])
         )
@@ -77,7 +77,7 @@ async def signup(
     summary='Refresh Both Tokens',
 )
 async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
-    logger.info('Refresh Token request')
+    logger.info('refresh token request')
     return await refresh(refresh_tkn, redis)
 
 
@@ -88,5 +88,5 @@ async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
     summary='Reset Your Password',
 )
 async def reset_password(request: ResetPasswordRequest, session: DBSession):
-    logger.info('Password reset request')
+    logger.info(f'password reset request from {request.email}')
     return await send_reset_password_message(request, session)

@@ -11,7 +11,7 @@ from starlette import status
 
 from src.users.aws_s3 import upload_to_s3_bucket
 from src.database.models import UserDB, Group
-from src.users.exceptions import raise_upload_exception
+from src.users.exceptions import UploadImageException
 from src.users.schemas import User, RoleEnum
 from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES, logger
 from src.utils.converters import convert_IN_to_DB_model
@@ -105,16 +105,16 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
 
 async def upload_image(file: UploadFile, username: str) -> str:
     if not file:
-        raise_upload_exception('File not presented')
+        raise UploadImageException('File not presented')
 
     file_bytes = await file.read()
     file_size = len(file_bytes)
     if file_size < 1 or file_size > MAX_FILE_SIZE:
-        raise_upload_exception('File size is too big')
+        raise UploadImageException('File size is too big')
 
     file_type = magic.from_buffer(file_bytes, mime=True)
     if file_type not in SUPPORTED_TYPES:
-        raise_upload_exception(
+        raise UploadImageException(
             f'Unsupported file type {file_type}. Supported types: {SUPPORTED_TYPES}'
         )
     logger.debug('uploading image to s3')
