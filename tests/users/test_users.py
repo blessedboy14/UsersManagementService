@@ -112,7 +112,7 @@ async def test_read_user_with_invalid_id(async_app_client, auth_main_user):
     access_token = auth_main_user
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.get('/users/fake_id123', headers=headers)
-    assert response.status_code == 404
+    assert response.status_code == 400
 
 
 @pytest.mark.asyncio

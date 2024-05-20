@@ -63,47 +63,44 @@ async def patch_user(user_data: User, db_session: AsyncSession) -> User:
         await db_session.close()
 
 
-def _is_uuid_valid(uuid_str: str) -> bool:
-    try:
-        _ = uuid.UUID(uuid_str)
-        return True
-    except ValueError:
-        return False
-
-
 async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
     if cur_user.role is RoleEnum.USER:
         logger.error("can't read user's as user")
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
         )
-    if not _is_uuid_valid(user_id):
-        logger.error(f'user id {user_id} is not valid')
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Incorrect id passed'
-        )
     if cur_user.role is RoleEnum.MODERATOR:
-        found = list(
-            await session.scalars(
-                select(UserDB).filter(
-                    UserDB.id == user_id, UserDB.group_id == cur_user.group_id
+        try:
+            found = list(
+                await session.scalars(
+                    select(UserDB).filter(
+                        UserDB.id == user_id, UserDB.group_id == cur_user.group_id
+                    )
                 )
             )
+        except SQLAlchemyError as e:
+            logger.error(f'error while trying to find user: {e}')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='User by specified id not fount',
+            )
+    else:
+        try:
+            found = list(
+                await session.scalars(select(UserDB).where(UserDB.id == user_id))
+            )
+        except SQLAlchemyError as e:
+            logger.error(f'error while trying to find user: {e}')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='User by specified id not fount',
+            )
+    if not found:
+        logger.error('User by specified id not found')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
         )
-        if not found:
-            logger.error('User by specified id not found')
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
-            )
-        return found[0]
-    if cur_user.role is RoleEnum.ADMIN:
-        found = list(await session.scalars(select(UserDB).where(UserDB.id == user_id)))
-        if not found:
-            logger.error('User by specified id not found')
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
-            )
-        return found[0]
+    return found[0]
 
 
 async def upload_image(file: UploadFile, username: str) -> str:
