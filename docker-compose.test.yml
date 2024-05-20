@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  test_db:
+    image: postgres
+    restart: always
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: ${NAME}
+      POSTGRES_PASSWORD: ${PASS}
+      POSTGRES_DB: ${TEST_POSTGRES_DB}
+    volumes:
+      - /home/docker_images/test_postgres:/var/lib/postgresql/data
+    networks:
+      - usersmanagementservice_default
+
+networks:
+  usersmanagementservice_default:
+    external: true

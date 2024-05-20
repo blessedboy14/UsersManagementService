@@ -13,7 +13,7 @@ from src.auth.schemas import (
     TokenSchema,
     AuthUser,
     ResetPasswordRequest,
-    ResetResponseSchema,
+    ResetPasswordMessage,
     UserInDB,
     ResetPasswordResponse,
 )
@@ -172,7 +172,7 @@ async def send_reset_password_message(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
         )
-    message = ResetResponseSchema(
+    message = ResetPasswordMessage(
         user_id=is_exist.id,
         subject=f'Resetting Password To Your Account: {request.email}',
         body='Click this link to reset your password '

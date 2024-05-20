@@ -65,7 +65,7 @@ SUPPORTED_TYPES = {'image/png': 'png', 'image/jpeg': 'jpg'}
 
 # logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 try:

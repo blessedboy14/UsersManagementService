@@ -13,7 +13,8 @@ from src.database.models import UserDB
 from src.auth.security import get_password_hash, create_access_jwt
 from src.rabbitmq.publisher import publisher
 from src.users import users
-from src.users.service import _create_bucket_if_not_exists, upload_image
+from src.users.service import upload_image
+from src.users.aws_s3 import _create_bucket_if_not_exists
 from src.users.users import get_current_user
 from tests.utils.database_setup import existed_user
 

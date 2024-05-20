@@ -59,7 +59,7 @@ class TokenSchema(BaseModel):
     type: str
 
 
-class ResetResponseSchema(BaseModel):
+class ResetPasswordMessage(BaseModel):
     user_id: uuid.UUID
     subject: str
     body: str
