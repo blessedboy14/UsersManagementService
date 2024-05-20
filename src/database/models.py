@@ -24,7 +24,7 @@ class UserDB(Base):
     group: Mapped[Optional['Group']] = relationship(
         'Group', back_populates='users', lazy=False
     )
-    image: Mapped[str] = mapped_column(String(300), default='/static/img/user.png')
+    image: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     is_blocked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
