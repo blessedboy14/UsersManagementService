@@ -46,7 +46,6 @@ jobs:
           docker-compose --env-file .env.test -f docker-compose.test.yml up -d
       - name: Wait until rabbitmq is up
         run: |
-          docker ps -a
           sleep 20s
       - name: Test with pytest and show coverage
         run: |
