@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from tests.utils.database_setup import string_url
+from src.database.database import string_url
 from src.database.models import UserDB
 
 # this is the Alembic Config object, which provides

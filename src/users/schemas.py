@@ -30,7 +30,7 @@ class UserBase(BaseModel):
     phone: str = Field(min_length=13, max_length=13)
     email: EmailStr
     role: Optional[RoleEnum] = RoleEnum.USER
-    group_id: uuid.UUID
+    group_id: Optional[uuid.UUID] = None
     image: Optional[str] = None
     is_blocked: bool = False
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)

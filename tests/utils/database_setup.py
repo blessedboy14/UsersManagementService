@@ -1,6 +1,6 @@
 from src.config.settings import settings
 from src.database.database import DatabaseSessionMaker
-from src.users.models import RoleEnum
+from src.users.schemas import RoleEnum
 from src.auth.security import get_password_hash
 
 username = settings.username

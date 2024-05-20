@@ -12,7 +12,7 @@ from starlette import status
 from src.users.aws_s3 import upload_to_s3_bucket
 from src.database.models import UserDB, Group
 from src.users.exceptions import raise_upload_exception
-from src.users.models import User, RoleEnum
+from src.users.schemas import User, RoleEnum
 from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES, logger
 from src.utils.converters import convert_IN_to_DB_model
 
@@ -48,12 +48,6 @@ async def get_cur_user_group(group_id: uuid.UUID, session: AsyncSession) -> Grou
         )
     ).first()
     return group
-
-
-async def get_all_users(session: AsyncSession) -> list[UserDB]:
-    logger.debug('fetching all users')
-    users = list((await session.scalars(select(UserDB).order_by(UserDB.role))).all())
-    return users
 
 
 async def patch_user(user_data: User, db_session: AsyncSession) -> User:

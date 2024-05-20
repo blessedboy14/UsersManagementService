@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Query
 
-from src.users.models import (
+from src.users.schemas import (
     User,
     UserPatch,
     RoleEnum,

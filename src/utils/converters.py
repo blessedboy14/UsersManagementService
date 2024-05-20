@@ -1,4 +1,4 @@
-from src.users.models import User
+from src.users.schemas import User
 from src.auth.schemas import UserInDB
 from src.database.models import UserDB
 
@@ -11,7 +11,7 @@ def convert_IN_to_DB_model(user: User) -> UserDB:
         name=user.name,
         surname=user.surname,
         image=user.image,
-        group_id=user.group_id.hex,
+        group_id=None if not user.group_id else user.group_id.hex,
         role=user.role,
         phone=user.phone,
         hashed_password=user.hashed_password,
