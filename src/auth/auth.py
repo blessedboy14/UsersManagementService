@@ -1,7 +1,6 @@
 from typing import Annotated
 from fastapi import (
     APIRouter,
-    HTTPException,
     status,
     Depends,
     Form,
@@ -21,6 +20,7 @@ from src.auth.schemas import (
     ResponseUser,
     ResetPasswordResponse,
 )
+from src.auth.exceptions import ModelValidationException
 from src.config.settings import logger
 from src.dependencies.core import DBSession, Redis
 from src.auth.service import (
@@ -64,9 +64,7 @@ async def signup(
         userIn = UserIn(email=email, phone=phone, password=password, username=username)
     except ValidationError as err:
         logger.error(f'failed to create model from sign up input with err: {err}')
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=repr(err.errors()[0]['msg'])
-        )
+        raise ModelValidationException(repr(err.errors()[0]['msg']))
     return await create_new_user(userIn, session, image)
 
 

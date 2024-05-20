@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from aioredis import Redis
-from fastapi import HTTPException, UploadFile, File
+from fastapi import UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +24,12 @@ from src.auth.security import (
     create_refresh_jwt,
     decode_token,
     create_link_token,
+)
+from src.auth.exceptions import (
+    LoginUserException,
+    RefreshTokenException,
+    CreateUserException,
+    NotFoundException,
 )
 from src.utils.converters import convert_AUTH_to_DB
 from src.config.settings import logger
@@ -64,13 +70,15 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                 )
             else:
                 logger.error("User password don't match with existed")
-                raise HTTPException(status_code=401, detail="Password don't match")
+                raise LoginUserException(
+                    reason="Password don't match", username=user.username
+                )
         else:
             logger.error(f'User is blocked: {userIn.login}')
-            raise HTTPException(status_code=401, detail='User blocked')
+            raise LoginUserException(username=user.username, reason='User blocked')
     else:
         logger.error(f'User not found in the database: {userIn.login}')
-        raise HTTPException(status_code=401, detail='User not found')
+        raise LoginUserException(username=userIn.login, reason='User not found')
 
 
 async def get_user(userIn: LoginUser, db_session: AsyncSession) -> UserDB:
@@ -97,9 +105,10 @@ async def is_blacklisted(token: str, redis: Redis) -> bool:
 async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
         logger.error('Token is defined as blacklisted')
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Invalid refresh token(blacklisted)',
+        raise RefreshTokenException(
+            exc_status=status.HTTP_400_BAD_REQUEST,
+            reason='Invalid refresh token(blacklisted)',
+            token=token,
         )
     payload = decode_token(token)
     user_id = payload.get('user_id')
@@ -117,7 +126,9 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
         )
     else:
         logger.error("provided token isn't refresh token(invalid payload)")
-        raise HTTPException(status_code=401, detail='Not a refresh token')
+        raise RefreshTokenException(
+            exc_status=401, reason='Not a refresh token', token=token
+        )
 
 
 async def blacklist_token(token: str, redis: Redis):
@@ -147,9 +158,9 @@ async def create_new_user(
         return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
         logger.error(f'integrity error, unique already exists: {e}')
-        raise HTTPException(
-            status_code=400,
-            detail=f'Integrity Error(e.g. duplicate unique key); msg: {e}',
+        raise CreateUserException(
+            username=user.username,
+            reason=f'Integrity Error; msg: {e}',
         )
 
 
@@ -171,9 +182,7 @@ async def send_reset_password_message(
     is_exist = await get_by_email(request.email, db_session)
     if not is_exist:
         logger.error(f"user with email {request.email} don't exist")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
-        )
+        raise NotFoundException(message='User not found')
     message = ResetPasswordMessage(
         user_id=is_exist.id,
         subject=f'Resetting Password To Your Account: {request.email}',

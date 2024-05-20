@@ -1,7 +1,8 @@
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Query
+from fastapi import APIRouter, Depends, status, UploadFile, Query
 
+from src.auth.exceptions import NotFoundException
 from src.users.schemas import (
     User,
     UserPatch,
@@ -13,7 +14,11 @@ from src.users.schemas import (
 from src.auth.security import oauth2_scheme, decode_token
 import src.users.service as service
 from src.dependencies.core import DBSession
-from src.users.exceptions import CredentialException
+from src.users.exceptions import (
+    CredentialException,
+    EmptyInputDataException,
+    NotAllowedException,
+)
 from src.config.settings import logger
 
 router = APIRouter()
@@ -62,9 +67,8 @@ async def update_user_me(
         logger.error(
             f'update request provide no data that can be updated, maybe non-exist field, data: {updated_data}'
         )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='No info provided or non-existing fields',
+        raise EmptyInputDataException(
+            message='No info provided or non-existing fields',
         )
     updated_item = cur_user.model_copy(update=updated_data)
     return await service.patch_user(updated_item, session)
@@ -110,25 +114,23 @@ async def patch_user(
         logger.error(
             f"attempt to patch user by id, when current user isn't admin: {cur_user.username}"
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail='Not allowed'
+        raise NotAllowedException(
+            reason='Not allowed',
+            role=cur_user.role,
         )
     to_update = await service.get_user(user_id, session)
     if to_update is None:
         logger.error(
             f'attempt by admin to patch non-exist user, admin: {cur_user.username}'
         )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='User not found'
-        )
+        raise NotFoundException(message='User not found')
     updated_data = updated_user.model_dump(exclude_unset=True)
     if not updated_data:
         logger.error(
             f'attempt by admin to patch user, but provide no correct data: {updated_data}'
         )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='No info provided or non-existing fields',
+        raise EmptyInputDataException(
+            message='No info provided or non-existing fields',
         )
     patched_user = to_update.model_copy(update=updated_data)
     return await service.patch_user(patched_user, session)
@@ -178,8 +180,9 @@ async def delete_user_as_admin(
         logger.info(
             f'attempt to delete user by id from non-admin user: {cur_user.username}'
         )
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
+        raise NotAllowedException(
+            reason='Not allowed',
+            role=cur_user.role,
         )
     await service.delete_user(uuid.UUID(user_id), session)
     await session.commit()

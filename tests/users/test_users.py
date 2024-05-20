@@ -56,7 +56,7 @@ async def test_create_then_login_then_delete_then_login(
     assert response.json() == {'message': 'User deleted', 'data': None}
     response = await async_app_client.post('/auth/login', data=login_data)
     assert response.status_code == 401
-    assert response.json().get('detail') == 'User not found'
+    assert 'User not found' in response.json().get('detail')
 
 
 @pytest.mark.asyncio
@@ -112,7 +112,7 @@ async def test_read_user_with_invalid_id(async_app_client, auth_main_user):
     access_token = auth_main_user
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await client.get('/users/fake_id123', headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -253,8 +253,8 @@ async def test_request_filter_as_user(async_app_client, auth_fake_user):
     access_token, _ = auth_fake_user
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_app_client.get('/users', headers=headers)
-    assert response.status_code == 405
-    assert response.json().get('detail') == 'Not allowed'
+    assert response.status_code == 401
+    assert 'Not allowed' in response.json().get('detail')
 
 
 @pytest.mark.asyncio
@@ -272,7 +272,7 @@ async def test_get_by_id_as_user(async_app_client, auth_fake_user):
     response = await async_app_client.get(
         f'/users/{str(uuid.uuid4())}', headers=headers
     )
-    assert response.status_code == 405
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio
@@ -334,7 +334,7 @@ async def test_delete_as_non_admin(async_app_client, auth_fake_user):
     response = await async_app_client.delete(
         f'/users/{str(uuid.uuid4())}', headers=headers
     )
-    assert response.status_code == 405
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio
@@ -345,7 +345,7 @@ async def test_patch_non_exist_user(async_app_client, auth_main_user):
     response = await async_app_client.patch(
         f'/users/{str(uuid.uuid4())}', headers=headers, json=to_patch
     )
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert response.json().get('detail') == 'User not found'
 
 

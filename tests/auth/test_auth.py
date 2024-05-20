@@ -142,7 +142,7 @@ async def test_login_blocked_user(async_app_client, create_blocked_user):
     login = create_blocked_user
     response = await async_app_client.post('/auth/login', data=login)
     assert response.status_code == 401
-    assert response.json().get('detail') == 'User blocked'
+    assert 'User blocked' in response.json().get('detail')
 
 
 @pytest.mark.asyncio
@@ -150,7 +150,7 @@ async def test_login_nonexistent_user(async_app_client):
     fake_login = {'username': 'non_exist', 'password': '<  blank  >'}
     response = await async_app_client.post('/auth/login', data=fake_login)
     assert response.status_code == 401
-    assert response.json().get('detail') == 'User not found'
+    assert 'User not found' in response.json().get('detail')
 
 
 @pytest.mark.asyncio
@@ -159,7 +159,7 @@ async def test_login_with_incorrect_passw(async_app_client):
     login_data['password'] = 'fake_password'
     response = await async_app_client.post('/auth/login', data=login_data)
     assert response.status_code == 401
-    assert response.json().get('detail') == "Password don't match"
+    assert "Password don't match" in response.json().get('detail')
 
 
 @pytest.mark.asyncio

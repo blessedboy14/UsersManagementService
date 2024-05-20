@@ -9,9 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette import status
 
+from src.auth.exceptions import NotFoundException
 from src.users.aws_s3 import upload_to_s3_bucket
 from src.database.models import UserDB, Group
-from src.users.exceptions import UploadImageException
+from src.users.exceptions import (
+    UploadImageException,
+    NotAllowedException,
+    SortKeyDoesNotExistException,
+)
 from src.users.schemas import User, RoleEnum
 from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES, logger
 from src.utils.converters import convert_IN_to_DB_model
@@ -66,8 +71,9 @@ async def patch_user(user_data: User, db_session: AsyncSession) -> User:
 async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
     if cur_user.role is RoleEnum.USER:
         logger.error("can't read user's as user")
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
+        raise NotAllowedException(
+            reason='Not allowed',
+            role=cur_user.role,
         )
     if cur_user.role is RoleEnum.MODERATOR:
         try:
@@ -80,9 +86,8 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
             )
         except SQLAlchemyError as e:
             logger.error(f'error while trying to find user: {e}')
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail='User by specified id not fount',
+            raise NotFoundException(
+                message='User by specified id not fount',
             )
     else:
         try:
@@ -91,15 +96,12 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
             )
         except SQLAlchemyError as e:
             logger.error(f'error while trying to find user: {e}')
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail='User by specified id not fount',
+            raise NotFoundException(
+                message='User by specified id not fount',
             )
     if not found:
         logger.error('User by specified id not found')
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='User not found'
-        )
+        raise NotFoundException(message='User not found')
     return found[0]
 
 
@@ -138,16 +140,12 @@ async def fetch_filtered_users(
     result_list = []
     if user.role is RoleEnum.USER:
         logger.error("can't read user's as user")
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail='Not allowed'
-        )
+        raise NotAllowedException(reason='Not allowed', role=user.role)
     page = page - 1
     start = page * limit
     if sort_by not in UserDB.__dict__:
         logger.error('non-existed sort key')
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Sort key don't exist"
-        )
+        raise SortKeyDoesNotExistException(reason="Sort key don't exist")
     if user.role is RoleEnum.MODERATOR:
         result_list = await session.scalars(
             select(UserDB)
