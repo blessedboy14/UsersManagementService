@@ -13,6 +13,17 @@ permissions:
 
 jobs:
 
+ build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build docker compose
+        run: |
+          docker-compose --env-file .env.test up -d
+      - name: Check containers status
+        run: |
+          docker-compose ps -q | xargs docker inspect --format='{{.State.Status}}' | grep -v 'running'
+      
  lint:
     runs-on: ubuntu-latest
 
