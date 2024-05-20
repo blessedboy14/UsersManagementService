@@ -13,7 +13,7 @@ from src.users.aws_s3 import upload_to_s3_bucket
 from src.database.models import UserDB, Group
 from src.users.exceptions import raise_upload_exception
 from src.users.models import User, RoleEnum
-from src.config.settings import settings, MAX_FILE_SIZE, SUPPORTED_TYPES, logger
+from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES, logger
 from src.utils.converters import convert_IN_to_DB_model
 
 
