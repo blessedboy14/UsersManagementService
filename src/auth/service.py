@@ -59,7 +59,6 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
             if verify_password(userIn.password, user.hashed_password):
                 data = {'user_id': user.id.hex}
                 refresh_token = create_refresh_jwt(data)
-                data.update({'group_id': str(user.group_id)})
                 access_token = create_access_jwt(data)
                 logger.info(f'user "{userIn.login}" logged in')
                 return TokenSchema(

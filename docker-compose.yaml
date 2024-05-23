@@ -45,6 +45,7 @@ services:
   backend:
     build: .
     container_name: "backend"
+    restart: always
     ports:
       - "8080:8080"
     environment:
@@ -58,4 +59,5 @@ services:
       -  RABBITMQ_QUEUE=reset-password-stream
       -  TEST_POSTGRES_HOST=test_db
       -  TEST_DB_PORT=5432
+      -  SECRET_KEY=${SECRET_KEY}
 
