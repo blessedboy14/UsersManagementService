@@ -32,7 +32,7 @@ from src.auth.exceptions import (
     NotFoundException,
 )
 from src.utils.converters import convert_AUTH_to_DB
-from src.config.settings import logger
+from src.auth.config import logger
 from src.database.models import UserDB
 from src.users.service import update_user, upload_image
 from src.rabbitmq.publisher import publisher
@@ -42,7 +42,7 @@ async def create_user(user: UserIn, db_session: AsyncSession) -> UserInDB:
     hashed_user = hash_model(user)
     hashed_database_model = convert_AUTH_to_DB(hashed_user)
     db_session.add(hashed_database_model)
-    logger.info(f'user "{user.username}" created')
+    logger.info(f'User "{user.username}" created')
     return hashed_user
 
 
@@ -60,7 +60,6 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                 data = {'user_id': user.id.hex}
                 refresh_token = create_refresh_jwt(data)
                 access_token = create_access_jwt(data)
-                logger.info(f'user "{userIn.login}" logged in')
                 return TokenSchema(
                     message='Logged in successfully',
                     access_token=access_token,
@@ -68,12 +67,10 @@ async def login_user(userIn: LoginUser, db_session: AsyncSession) -> TokenSchema
                     type='bearer',
                 )
             else:
-                logger.error("User password don't match with existed")
                 raise LoginUserException(
                     reason="Password don't match", username=user.username
                 )
         else:
-            logger.error(f'User is blocked: {userIn.login}')
             raise LoginUserException(username=user.username, reason='User blocked')
     else:
         logger.error(f'User not found in the database: {userIn.login}')
@@ -95,7 +92,6 @@ async def get_user(userIn: LoginUser, db_session: AsyncSession) -> UserDB:
 
 async def is_blacklisted(token: str, redis: Redis) -> bool:
     blacklisted = await redis.get(token)
-    logger.debug('Checking token blacklist status')
     if blacklisted:
         return True
     return False
@@ -103,7 +99,6 @@ async def is_blacklisted(token: str, redis: Redis) -> bool:
 
 async def refresh(token: str, redis: Redis) -> TokenSchema:
     if await is_blacklisted(token, redis):
-        logger.error('Token is defined as blacklisted')
         raise RefreshTokenException(
             exc_status=status.HTTP_400_BAD_REQUEST,
             reason='Invalid refresh token(blacklisted)',
@@ -124,14 +119,13 @@ async def refresh(token: str, redis: Redis) -> TokenSchema:
             type='bearer',
         )
     else:
-        logger.error("provided token isn't refresh token(invalid payload)")
+        logger.error(f"Provided token isn't refresh token(invalid payload) {payload}")
         raise RefreshTokenException(
             exc_status=401, reason='Not a refresh token', token=token
         )
 
 
 async def blacklist_token(token: str, redis: Redis):
-    logger.debug('Attempt to blacklist token with redis')
     await redis.set(token, 'blacklisted')
 
 
@@ -145,18 +139,15 @@ async def create_new_user(
         await session.commit()
         if image is not None:
             added_user = await get_by_email(user.email, session)
-            logger.info(
-                f'user "{user.username}" created with image, trying to upload image'
-            )
             s3_filename = await upload_image(image, user.username)
             added_user.image = s3_filename
             await update_user(added_user, session)
             await session.commit()
-            logger.info(f'image uploaded for user "{user.username}"')
-        logger.debug(f'user "{user.username}" created without image')
         return AuthUser(**hashed_user.model_dump())
     except IntegrityError as e:
-        logger.error(f'integrity error, unique already exists: {e}')
+        logger.error(
+            f'Integrity error when creating a user, unique already exists: {e}'
+        )
         raise CreateUserException(
             username=user.username,
             reason=f'Integrity Error; msg: {e}',
@@ -180,7 +171,6 @@ async def send_reset_password_message(
 ):
     is_exist = await get_by_email(request.email, db_session)
     if not is_exist:
-        logger.error(f"user with email {request.email} don't exist")
         raise NotFoundException(message='User not found')
     message = ResetPasswordMessage(
         user_id=is_exist.id,
@@ -197,7 +187,6 @@ async def send_reset_password_message(
             'published_at': to_send['published_at'].isoformat(),
         }
     )
-    logger.debug('sending message to rabbitmq queue')
     publisher.publish_message(to_send)
     return ResetPasswordResponse(
         message='Reset link was sent to your email', email=request.email

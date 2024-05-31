@@ -19,7 +19,7 @@ from src.users.exceptions import (
     EmptyInputDataException,
     NotAllowedException,
 )
-from src.config.settings import logger
+from src.users.config import logger
 
 router = APIRouter()
 
@@ -44,7 +44,6 @@ async def get_current_user(
     summary='Get Yourself',
 )
 async def read_users_me(cur_user: Annotated[User, Depends(get_current_user)]):
-    logger.info('reading current user')
     return cur_user
 
 
@@ -59,9 +58,6 @@ async def update_user_me(
     cur_user: Annotated[User, Depends(get_current_user)],
     session: DBSession,
 ):
-    logger.info(
-        f'updating current user "{cur_user.username}" with data {updated_user.model_dump(exclude_none=True)}'
-    )
     updated_data = updated_user.model_dump(exclude_unset=True)
     if not updated_data:
         logger.error(
@@ -78,7 +74,6 @@ async def update_user_me(
 async def delete_me(
     cur_user: Annotated[User, Depends(get_current_user)], session: DBSession
 ):
-    logger.info(f'performing delete of user "{cur_user.username}"')
     await service.delete_user(cur_user.id, session)
     await session.commit()
     return {'message': 'User deleted', 'data': None}
@@ -111,18 +106,12 @@ async def patch_user(
     session: DBSession,
 ):
     if cur_user.role is not RoleEnum.ADMIN:
-        logger.error(
-            f"attempt to patch user by id, when current user isn't admin: {cur_user.username}"
-        )
         raise NotAllowedException(
             reason='Not allowed',
             role=cur_user.role,
         )
     to_update = await service.get_user(user_id, session)
     if to_update is None:
-        logger.error(
-            f'attempt by admin to patch non-exist user, admin: {cur_user.username}'
-        )
         raise NotFoundException(message='User not found')
     updated_data = updated_user.model_dump(exclude_unset=True)
     if not updated_data:
@@ -162,7 +151,6 @@ async def upload_avatar_image(
     session: DBSession,
     file: UploadFile,
 ):
-    logger.info(f'upload image to s3 localstack request from "{cur_user.username}"')
     s3_filename = await service.upload_image(file, cur_user.username)
     to_update = {'image': s3_filename}
     updated_item = cur_user.model_copy(update=to_update)

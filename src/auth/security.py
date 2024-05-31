@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
-from src.config.settings import logger
+from src.auth.config import logger
 from src.config.settings import settings
 from src.auth.schemas import UserIn, UserInDB
 

@@ -1,9 +1,6 @@
-import datetime
-
 from pydantic_settings import BaseSettings
 import os
 from dotenv import load_dotenv
-import logging
 
 
 load_dotenv()
@@ -61,17 +58,3 @@ string_url = f'{db_driver}://{db_username}:{db_password}@{db_url}/{db_schema}'
 # uploading files settings
 MAX_FILE_SIZE = 1024 * 1024 * 20
 SUPPORTED_TYPES = {'image/png': 'png', 'image/jpeg': 'jpg'}
-
-
-# logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-try:
-    handler = logging.FileHandler(f'logs/{datetime.datetime.today().date()}_log.log')
-except FileNotFoundError:
-    handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-
-logger.addHandler(handler)

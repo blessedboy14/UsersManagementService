@@ -1,6 +1,7 @@
 import json
 import pika
-from src.config.settings import settings, logger
+from src.config.settings import settings
+from src.rabbitmq.config import logger
 
 conf = {
     'host': settings.rabbit_host,
@@ -35,7 +36,7 @@ class Publisher:
 
     def publish_message(self, message: dict):
         self._init_all()
-        logger.debug(f'publishing message: {message}')
+        logger.debug(f'publishing message to queue: {message}')
         self._channel.basic_publish(
             exchange='',
             routing_key=self._queue_name,

@@ -18,12 +18,12 @@ from src.users.exceptions import (
     SortKeyDoesNotExistException,
 )
 from src.users.schemas import User, RoleEnum
-from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES, logger
+from src.config.settings import MAX_FILE_SIZE, SUPPORTED_TYPES
 from src.utils.converters import convert_IN_to_DB_model
+from src.users.config import logger
 
 
 async def get_user(user_id: str, session: AsyncSession) -> User | None:
-    logger.debug(f'getting user by id: {user_id}')
     user_db = (
         await session.scalars(select(UserDB).where(UserDB.id == user_id))
     ).first()
@@ -34,19 +34,17 @@ async def get_user(user_id: str, session: AsyncSession) -> User | None:
 
 
 async def update_user(user: UserDB, session: AsyncSession) -> UserDB:
-    logger.debug('updating user')
     await session.merge(user)
     return user
 
 
 async def delete_user(user_id: uuid.UUID, session: AsyncSession):
-    logger.debug('deleting user')
+    logger.debug(f'Deleting user with id {user_id}')
     delete_query = delete(UserDB).where(UserDB.id == user_id)
     await session.execute(delete_query)
 
 
 async def get_cur_user_group(group_id: uuid.UUID, session: AsyncSession) -> Group:
-    logger.debug('fetching cur user group')
     group = (
         await session.scalars(
             select(Group).where(Group.id == group_id).options(selectinload(Group.users))
@@ -61,7 +59,7 @@ async def patch_user(user_data: User, db_session: AsyncSession) -> User:
         await db_session.commit()
         return user_data
     except SQLAlchemyError as e:
-        logger.error(f'error while trying to patch user: {e}')
+        logger.error(f'Error while trying to patch user: {e}')
         await db_session.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     finally:
@@ -70,7 +68,6 @@ async def patch_user(user_data: User, db_session: AsyncSession) -> User:
 
 async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> UserDB:
     if cur_user.role is RoleEnum.USER:
-        logger.error("can't read user's as user")
         raise NotAllowedException(
             reason='Not allowed',
             role=cur_user.role,
@@ -84,23 +81,20 @@ async def find_by_id(user_id: str, cur_user: User, session: AsyncSession) -> Use
                     )
                 )
             )
-        except SQLAlchemyError as e:
-            logger.error(f'error while trying to find user: {e}')
+        except SQLAlchemyError:
             raise NotFoundException(
-                message='User by specified id not fount',
+                message='User by specified id not found',
             )
     else:
         try:
             found = list(
                 await session.scalars(select(UserDB).where(UserDB.id == user_id))
             )
-        except SQLAlchemyError as e:
-            logger.error(f'error while trying to find user: {e}')
+        except SQLAlchemyError:
             raise NotFoundException(
-                message='User by specified id not fount',
+                message='User by specified id not found',
             )
     if not found:
-        logger.error('User by specified id not found')
         raise NotFoundException(message='User not found')
     return found[0]
 
@@ -144,7 +138,6 @@ async def fetch_filtered_users(
     page = page - 1
     start = page * limit
     if sort_by not in UserDB.__dict__:
-        logger.error('non-existed sort key')
         raise SortKeyDoesNotExistException(reason="Sort key don't exist")
     if user.role is RoleEnum.MODERATOR:
         result_list = await session.scalars(
