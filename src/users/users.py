@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status, UploadFile, Query
 
 from src.auth.exceptions import NotFoundException
-from src.users.schemas import (
+from src.to_delete.schemas_old import (
     User,
     UserPatch,
     RoleEnum,

@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 
 from src.auth.config import logger
 from src.config.settings import settings
-from src.auth.schemas import UserIn, UserInDB
+from src.to_delete.schemas import UserIn, UserInDB
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm

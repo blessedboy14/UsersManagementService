@@ -4,6 +4,9 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+from src.domain.entities.user import AuthUser as AuthUserModel
+from src.domain.entities.user import User
+
 PhoneNumber.phone_format = 'E164'
 
 
@@ -47,13 +50,20 @@ class UserIn(AuthUser):
         pattern=r'[a-z0-9@#$%^&\'~\"+=_]{8,}', min_length=8, max_length=128
     )
 
+    def to_entity(self) -> AuthUserModel:
+        return AuthUserModel(
+            email=self.email,
+            username=self.username,
+            phone_number=self.phone,
+            password=self.password
+        )
+
 
 class UserInDB(AuthUser):
     hashed_password: str
 
 
 class TokenSchema(BaseModel):
-    message: str
     access_token: str
     refresh_token: str
     type: str

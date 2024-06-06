@@ -1,18 +1,22 @@
 import json
+
 import pika
-from src.config.settings import settings
-from src.rabbitmq.config import logger
 
-conf = {
-    'host': settings.rabbit_host,
-    'port': '5672',
-    'q_name': settings.rabbit_queue,
-    'login': settings.username,
-    'password': settings.passw,
-}
+from src.domain.entities.reset_password_message import ResetPasswordMessage
+from src.ports.publisher.message_publisher import MessagePublisher
 
 
-class Publisher:
+class RabbitMQMessagePublisher(MessagePublisher):
+    def publish(self, message: ResetPasswordMessage):
+        self._init_all()
+        # logger.debug(f'publishing message to queue: {message}')
+        self._channel.basic_publish(
+            exchange='',
+            routing_key=self._queue_name,
+            properties=pika.BasicProperties(),
+            body=json.dumps(message.__dict__),
+        )
+
     def __init__(self, config: dict):
         self._config = config
         self._queue_name = self._config['q_name']
@@ -34,16 +38,6 @@ class Publisher:
                 },
             )
 
-    def publish_message(self, message: dict):
-        self._init_all()
-        logger.debug(f'publishing message to queue: {message}')
-        self._channel.basic_publish(
-            exchange='',
-            routing_key=self._queue_name,
-            properties=pika.BasicProperties(),
-            body=json.dumps(message),
-        )
-
     def create_connection(self) -> pika.BlockingConnection:
         params = pika.ConnectionParameters(
             host=self._config['host'],
@@ -53,6 +47,3 @@ class Publisher:
             ),
         )
         return pika.BlockingConnection(params)
-
-
-publisher = Publisher(conf)

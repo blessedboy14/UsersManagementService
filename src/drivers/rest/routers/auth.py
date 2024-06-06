@@ -1,4 +1,5 @@
 from typing import Annotated
+
 from fastapi import (
     APIRouter,
     status,
@@ -12,9 +13,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr, ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
-from src.to_delete.schemas import (
+from src.drivers.rest.routers.schema import (
     UserIn,
-    LoginUser,
     TokenSchema,
     ResetPasswordRequest,
     ResponseUser,
@@ -22,13 +22,13 @@ from src.to_delete.schemas import (
 )
 from src.auth.exceptions import ModelValidationException
 from src.auth.config import logger
-from src.dependencies.core import DBSession, Redis
-from src.auth.service import (
-    login_user,
-    refresh,
-    create_new_user,
-    send_reset_password_message,
-)
+from src.domain.entities.user import LoginUser
+from src.drivers.rest.dependencies import (
+    get_sign_up_use_case,
+    get_login_use_case,
+    get_refresh_token_use_case,
+    get_reset_password_use_case)
+from src.use_cases.auth_use_cases import CreateUserUseCase, LoginUseCase, RefreshTokenUseCase, ResetPasswordUseCase
 
 router = APIRouter()
 
@@ -39,9 +39,11 @@ router = APIRouter()
     response_model=TokenSchema,
     summary='Login',
 )
-async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login(
+        use_case: Annotated[LoginUseCase, Depends(get_login_use_case)],
+        form_data: OAuth2PasswordRequestForm = Depends()):
     user = LoginUser(login=form_data.username, password=form_data.password)
-    return await login_user(user, session)
+    return await use_case(user)
 
 
 @router.post(
@@ -51,19 +53,21 @@ async def login(session: DBSession, form_data: OAuth2PasswordRequestForm = Depen
     summary='Sign Up',
 )
 async def signup(
+    use_case: Annotated[CreateUserUseCase, Depends(get_sign_up_use_case)],
     username: Annotated[str, Form()],
     phone: Annotated[PhoneNumber, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[str, Form()],
-    session: DBSession,
     image: UploadFile = File(None),
 ):
     try:
-        userIn = UserIn(email=email, phone=phone, password=password, username=username)
+        user_in = UserIn(email=email, phone=phone, password=password, username=username)
     except ValidationError as err:
         logger.error(f'failed to create model from sign up input with err: {err}')
         raise ModelValidationException(repr(err.errors()[0]['msg']))
-    return await create_new_user(userIn, session, image)
+    # return await create_new_user(userIn, session, image)
+    file_bytes = None if image is None else await image.read()
+    return await use_case(user_in.to_entity(), file_bytes)
 
 
 @router.post(
@@ -72,8 +76,11 @@ async def signup(
     response_model=TokenSchema,
     summary='Refresh Both Tokens',
 )
-async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
-    return await refresh(refresh_tkn, redis)
+async def refresh_token(
+        use_case: Annotated[RefreshTokenUseCase, Depends(get_refresh_token_use_case)],
+        refresh_tkn: Annotated[str, Header()]
+):
+    return await use_case(refresh_tkn)
 
 
 @router.post(
@@ -82,5 +89,6 @@ async def refresh_token(redis: Redis, refresh_tkn: Annotated[str, Header()]):
     response_model=ResetPasswordResponse,
     summary='Reset Your Password',
 )
-async def reset_password(request: ResetPasswordRequest, session: DBSession):
-    return await send_reset_password_message(request, session)
+async def reset_password(request: ResetPasswordRequest,
+                         use_case: Annotated[ResetPasswordUseCase, Depends(get_reset_password_use_case)]):
+    return await use_case(request.email)

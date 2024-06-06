@@ -5,10 +5,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from src.database.database import Base
-from src.users.schemas import RoleEnum
+from src.domain.entities.user import RoleEnum
 
 
-class UserDB(Base):
+class UserModel(Base):
     __tablename__ = 'users'
 
     email: Mapped[str] = mapped_column(String(60), unique=True, index=True)
@@ -42,7 +42,7 @@ class UserDB(Base):
 class Group(Base):
     __tablename__ = 'groups'
 
-    users: Mapped[List[UserDB]] = relationship()
+    users: Mapped[List[UserModel]] = relationship()
     name: Mapped[str]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

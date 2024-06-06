@@ -5,11 +5,7 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import Optional
 from enum import Enum
 
-
-class RoleEnum(str, Enum):
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-    USER = 'user'
+from src.domain.entities.user import RoleEnum
 
 
 class Group(BaseModel):
@@ -40,10 +36,6 @@ class UserBase(BaseModel):
     def validate_time(self):
         self.modified_at = datetime.datetime.now()
         return self
-
-
-class User(UserBase):
-    hashed_password: str
 
 
 class UserPatch(BaseModel):
