@@ -14,4 +14,3 @@ alembic/versions/
 logs/
 .coverage
 requirements.txt
-.github/
