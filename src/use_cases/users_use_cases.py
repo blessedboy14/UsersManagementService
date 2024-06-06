@@ -3,8 +3,12 @@ from dataclasses import replace
 from src.domain.entities.user import User
 from src.ports.repositories.images_repository import ImagesRepository
 from src.ports.repositories.user_repository import UserRepository
-from src.use_cases.exceptions import EmptyUpdateDataError, MethodNotAllowedError, UserNotFoundError
-from src.to_delete.schemas_old import RoleEnum
+from src.use_cases.exceptions import (
+    EmptyUpdateDataError,
+    MethodNotAllowedError,
+    UserNotFoundError,
+)
+from src.drivers.rest.routers.schema import RoleEnum
 
 
 class PatchMeUseCase:
@@ -41,7 +45,9 @@ class PatchUserByIdUseCase:
     def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
-    async def __call__(self, current_user: User, user_id: str, updated_user: dict | None) -> User:
+    async def __call__(
+        self, current_user: User, user_id: str, updated_user: dict | None
+    ) -> User:
         if current_user.role is not RoleEnum.ADMIN:
             raise MethodNotAllowedError(current_user.id)
         if not updated_user:
@@ -63,7 +69,10 @@ class GetUserByIdUseCase:
             raise MethodNotAllowedError(current_user.id)
         user = await self._user_repository.get_by_id(user_id)
         if user:
-            if current_user.role is RoleEnum.MODERATOR and user.group == current_user.group:
+            if (
+                current_user.role is RoleEnum.MODERATOR
+                and user.group == current_user.group
+            ):
                 return user
             elif current_user.role is RoleEnum.ADMIN:
                 return user
@@ -81,11 +90,15 @@ class ListUsersUseCase:
         if current_user.role is RoleEnum.ADMIN:
             return await self._user_repository.list(**filters)
         if current_user.role is RoleEnum.MODERATOR:
-            return await self._user_repository.list_from_same_group(str(current_user.group), **filters)
+            return await self._user_repository.list_from_same_group(
+                str(current_user.group), **filters
+            )
 
 
 class UploadImageUseCase:
-    def __init__(self, images_repository: ImagesRepository, user_repository: UserRepository):
+    def __init__(
+        self, images_repository: ImagesRepository, user_repository: UserRepository
+    ):
         self._images_repository = images_repository
         self._user_repository = user_repository
 
@@ -95,6 +108,3 @@ class UploadImageUseCase:
         updated_item = replace(current_user, **to_update)
         await self._user_repository.partial_update(updated_item)
         return s3_filename
-
-
-

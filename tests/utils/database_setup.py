@@ -1,7 +1,7 @@
 from src.config.settings import settings
 from src.database.database import DatabaseSessionMaker
-from src.to_delete.schemas_old import RoleEnum
-from src.auth.security import get_password_hash
+from src.drivers.rest.routers.schema import RoleEnum
+from src.common.security import get_password_hash
 
 username = settings.username
 passw = settings.passw

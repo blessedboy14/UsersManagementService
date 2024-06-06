@@ -6,7 +6,7 @@ class UserNotFoundError(Exception):
         self.login = login
 
     def __str__(self) -> str:
-        return f"User not found for login: {self.login}"
+        return f'User not found for login: {self.login}'
 
 
 class UserIsBlockedError(Exception):
@@ -14,7 +14,7 @@ class UserIsBlockedError(Exception):
         self.user_id = user_id
 
     def __str__(self) -> str:
-        return f"User is blocked: {self.user_id}"
+        return f'User is blocked: {self.user_id}'
 
 
 class PasswordDoesNotMatchError(Exception):
@@ -22,7 +22,7 @@ class PasswordDoesNotMatchError(Exception):
         self.user_id = user_id
 
     def __str__(self) -> str:
-        return f"Passwords does not match for user: {self.user_id}"
+        return f'Passwords does not match for user: {self.user_id}'
 
 
 class TokenIsBlacklistedError(Exception):
@@ -32,16 +32,15 @@ class TokenIsBlacklistedError(Exception):
 
 class NotARefreshTokenError(Exception):
     def __str__(self) -> str:
-        return "Provided token cannot be determined as refresh"
+        return 'Provided token cannot be determined as refresh'
 
 
 class EmptyUpdateDataError(Exception):
-
     def __init__(self, user_id: UUID):
         self.user_id = user_id
 
     def __str__(self) -> str:
-        return f"Empty update data for user: {self.user_id}"
+        return f'Empty update data for user: {self.user_id}'
 
 
 class MethodNotAllowedError(Exception):
@@ -49,10 +48,9 @@ class MethodNotAllowedError(Exception):
         self.user_id = user_id
 
     def __str__(self) -> str:
-        return f"Method not allowed for user: {self.user_id}"
+        return f'Method not allowed for user: {self.user_id}'
 
 
 class InvalidTokenError(Exception):
     def __str__(self) -> str:
-        return "Invalid access token"
-
+        return 'Invalid access token'

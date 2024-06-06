@@ -19,7 +19,6 @@ class InvalidIdError(ExternalError):
 
 
 class NonExistSortKeyError(ExternalError):
-
     def __init__(self, field: str):
         self.error = field
 
@@ -37,7 +36,7 @@ class ImagesBucketError(ExternalError):
 
 class NoFileContentError(ExternalError):
     def __str__(self) -> str:
-        return "File is empty or not provided"
+        return 'File is empty or not provided'
 
 
 class FileSizeError(ExternalError):
@@ -45,7 +44,7 @@ class FileSizeError(ExternalError):
         self.error = error
 
     def __str__(self) -> str:
-        return f"File size error: {self.error}"
+        return f'File size error: {self.error}'
 
 
 class InvalidFileTypeError(ExternalError):
@@ -54,4 +53,3 @@ class InvalidFileTypeError(ExternalError):
 
     def __str__(self) -> str:
         return self.error
-

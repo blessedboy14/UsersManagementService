@@ -3,10 +3,11 @@ import datetime
 from enum import Enum
 from typing import Optional
 
-from phonenumbers import PhoneNumber
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from pydantic import BaseModel, Field, EmailStr, ConfigDict, model_validator
 
 from src.domain.entities.user import RoleEnum, AuthUser as AuthUserModel
+
 
 PhoneNumber.phone_format = 'E164'
 
@@ -56,7 +57,7 @@ class UserIn(AuthUser):
             email=self.email,
             username=self.username,
             phone_number=str(self.phone),
-            password=self.password
+            password=self.password,
         )
 
 

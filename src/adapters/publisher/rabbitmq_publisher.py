@@ -9,7 +9,6 @@ from src.ports.publisher.message_publisher import MessagePublisher
 class RabbitMQMessagePublisher(MessagePublisher):
     def publish(self, message: ResetPasswordMessage):
         self._init_all()
-        # logger.debug(f'publishing message to queue: {message}')
         self._channel.basic_publish(
             exchange='',
             routing_key=self._queue_name,

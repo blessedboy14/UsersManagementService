@@ -8,4 +8,3 @@ class Group:
     name: str
     created_at: datetime = field(default_factory=datetime.utcnow)
     id: UUID = field(default_factory=UUID)
-    

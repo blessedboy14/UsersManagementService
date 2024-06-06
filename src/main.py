@@ -2,9 +2,11 @@ import contextlib
 from fastapi import FastAPI
 
 from src.drivers.rest.exception_handlers import exception_container
+
 # from src.auth import auth
 from src.drivers.rest.routers import auth
-from src.common import common
+from src.drivers.rest.routers import common
+
 # from src.users import users
 from src.drivers.rest.routers import users
 from src.database.database import session_manager

@@ -13,6 +13,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr, ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+from src.drivers.rest.routers.exceptions import ModelValidationError
 from src.drivers.rest.routers.schema import (
     UserIn,
     TokenSchema,
@@ -20,15 +21,20 @@ from src.drivers.rest.routers.schema import (
     ResponseUser,
     ResetPasswordResponse,
 )
-from src.auth.exceptions import ModelValidationException
-from src.auth.config import logger
+from src.drivers.rest.routers.config import logger
 from src.domain.entities.user import LoginUser
 from src.drivers.rest.dependencies import (
     get_sign_up_use_case,
     get_login_use_case,
     get_refresh_token_use_case,
-    get_reset_password_use_case)
-from src.use_cases.auth_use_cases import CreateUserUseCase, LoginUseCase, RefreshTokenUseCase, ResetPasswordUseCase
+    get_reset_password_use_case,
+)
+from src.use_cases.auth_use_cases import (
+    CreateUserUseCase,
+    LoginUseCase,
+    RefreshTokenUseCase,
+    ResetPasswordUseCase,
+)
 
 router = APIRouter()
 
@@ -40,8 +46,9 @@ router = APIRouter()
     summary='Login',
 )
 async def login(
-        use_case: Annotated[LoginUseCase, Depends(get_login_use_case)],
-        form_data: OAuth2PasswordRequestForm = Depends()):
+    use_case: Annotated[LoginUseCase, Depends(get_login_use_case)],
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
     user = LoginUser(login=form_data.username, password=form_data.password)
     return await use_case(user)
 
@@ -64,8 +71,7 @@ async def signup(
         user_in = UserIn(email=email, phone=phone, password=password, username=username)
     except ValidationError as err:
         logger.error(f'failed to create model from sign up input with err: {err}')
-        raise ModelValidationException(repr(err.errors()[0]['msg']))
-    # return await create_new_user(userIn, session, image)
+        raise ModelValidationError(repr(err.errors()[0]['msg']))
     file_bytes = None if image is None else await image.read()
     return await use_case(user_in.to_entity(), file_bytes)
 
@@ -77,8 +83,8 @@ async def signup(
     summary='Refresh Both Tokens',
 )
 async def refresh_token(
-        use_case: Annotated[RefreshTokenUseCase, Depends(get_refresh_token_use_case)],
-        refresh_tkn: Annotated[str, Header()]
+    use_case: Annotated[RefreshTokenUseCase, Depends(get_refresh_token_use_case)],
+    refresh_tkn: Annotated[str, Header()],
 ):
     return await use_case(refresh_tkn)
 
@@ -89,6 +95,8 @@ async def refresh_token(
     response_model=ResetPasswordResponse,
     summary='Reset Your Password',
 )
-async def reset_password(request: ResetPasswordRequest,
-                         use_case: Annotated[ResetPasswordUseCase, Depends(get_reset_password_use_case)]):
+async def reset_password(
+    request: ResetPasswordRequest,
+    use_case: Annotated[ResetPasswordUseCase, Depends(get_reset_password_use_case)],
+):
     return await use_case(request.email)

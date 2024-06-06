@@ -39,4 +39,3 @@ class AuthUser:
     password: str
     phone_number: str
     username: str
-

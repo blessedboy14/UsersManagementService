@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.domain.entities.user import User, LoginUser
-from src.domain.enums.role import Role
+from src.domain.entities.user import User
 
 
 class UserRepository(ABC):
@@ -27,7 +26,7 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def list_from_same_group(self,  group_id: str, **filters: Any) -> list[User]:
+    async def list_from_same_group(self, group_id: str, **filters: Any) -> list[User]:
         pass
 
     @abstractmethod
@@ -37,4 +36,3 @@ class UserRepository(ABC):
     @abstractmethod
     async def get_by_id(self, user_id: str) -> User | None:
         pass
-

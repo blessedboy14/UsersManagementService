@@ -1,20 +1,37 @@
 from datetime import datetime, timedelta
 
-from src.auth.security import verify_password, get_password_hash, create_refresh_jwt, create_access_jwt, decode_token, \
-    create_link_token
-from src.domain.entities.reset_password_message import ResetPasswordMessage, ResetPasswordResponse
+from src.common.security import (
+    verify_password,
+    get_password_hash,
+    create_refresh_jwt,
+    create_access_jwt,
+    decode_token,
+    create_link_token,
+)
+from src.domain.entities.reset_password_message import (
+    ResetPasswordMessage,
+    ResetPasswordResponse,
+)
 from src.domain.entities.token import Token
 from src.domain.entities.user import User, LoginUser, AuthUser
 from src.ports.publisher.message_publisher import MessagePublisher
 from src.ports.repositories.images_repository import ImagesRepository
 from src.ports.repositories.user_repository import UserRepository
 from src.ports.repositories.token_repository import TokenRepository
-from src.use_cases.exceptions import UserNotFoundError, UserIsBlockedError, PasswordDoesNotMatchError, \
-    TokenIsBlacklistedError, NotARefreshTokenError, InvalidTokenError
+from src.use_cases.exceptions import (
+    UserNotFoundError,
+    UserIsBlockedError,
+    PasswordDoesNotMatchError,
+    TokenIsBlacklistedError,
+    NotARefreshTokenError,
+    InvalidTokenError,
+)
 
 
 class CreateUserUseCase:
-    def __init__(self, user_repository: UserRepository, image_repository: ImagesRepository):
+    def __init__(
+        self, user_repository: UserRepository, image_repository: ImagesRepository
+    ):
         self._user_repository = user_repository
         self._image_repository = image_repository
 
@@ -30,7 +47,7 @@ class CreateUserUseCase:
             email=auth_user.email,
             phone=auth_user.phone_number,
             username=auth_user.username,
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
         )
         user = await self._user_repository.create(user)
         if image is not None:
@@ -61,7 +78,9 @@ class LoginUseCase:
 
 
 class RefreshTokenUseCase:
-    def __init__(self, user_repository: UserRepository, token_repository: TokenRepository):
+    def __init__(
+        self, user_repository: UserRepository, token_repository: TokenRepository
+    ):
         self._user_repository = user_repository
         self._token_repository = token_repository
 
@@ -105,7 +124,9 @@ class ResetPasswordUseCase:
         }
         # logger.debug(f'generating reset password link for: {email}')
         token = create_link_token(payload)
-        reset_link = f'https://127.0.0.1:8000/auth/reset-password/{user_id}?token=' + token
+        reset_link = (
+            f'https://127.0.0.1:8000/auth/reset-password/{user_id}?token=' + token
+        )
         return reset_link
 
     async def __call__(self, email: str) -> ResetPasswordResponse:
@@ -116,7 +137,7 @@ class ResetPasswordUseCase:
             user_id=str(user.id),
             subject=f'Resetting Password To Your Account: {email}',
             body='Click this link to reset your password '
-                 f'{self._generate_reset_password_url(email, str(user.id))}',
+            f'{self._generate_reset_password_url(email, str(user.id))}',
             email=email,
             published_at=datetime.utcnow().isoformat(),
         )
