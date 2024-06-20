@@ -1,0 +1,17 @@
+
+/.venv
+/.venv/*
+
+__pycache__/
+
+/rabbitmq/
+
+.env
+aws/
+volume/
+.idea/
+alembic/versions/
+logs/
+.coverage
+requirements.txt
+.github/

@@ -1,0 +1,5 @@
+aws/
+rabbitmq/
+alembic/
+volume/
+__pycache__/
