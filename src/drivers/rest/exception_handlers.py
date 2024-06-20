@@ -132,7 +132,7 @@ def exception_container(app: FastAPI) -> None:
 
     @app.exception_handler(ImagesBucketError)
     async def images_bucket_exception_handler(
-            request: Request, exc: ImagesBucketError
+        request: Request, exc: ImagesBucketError
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -141,7 +141,7 @@ def exception_container(app: FastAPI) -> None:
 
     @app.exception_handler(FileSizeError)
     async def file_size_exception_handler(
-            request: Request, exc: FileSizeError
+        request: Request, exc: FileSizeError
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -150,7 +150,7 @@ def exception_container(app: FastAPI) -> None:
 
     @app.exception_handler(NoFileContentError)
     async def no_file_content_exception_handler(
-            request: Request, exc: NoFileContentError
+        request: Request, exc: NoFileContentError
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -159,7 +159,7 @@ def exception_container(app: FastAPI) -> None:
 
     @app.exception_handler(InvalidFileTypeError)
     async def invalid_file_type_exception_handler(
-            request: Request, exc: InvalidFileTypeError
+        request: Request, exc: InvalidFileTypeError
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -55,8 +55,9 @@ def get_sign_up_use_case(
 
 def get_login_use_case(
     users_repository: Annotated[UserRepository, Depends(get_users_repository)],
+    token_repository: Annotated[TokenRepository, Depends(get_token_repository)],
 ) -> LoginUseCase:
-    return LoginUseCase(users_repository)
+    return LoginUseCase(users_repository, token_repository)
 
 
 def get_refresh_token_use_case(

@@ -56,8 +56,11 @@ class CreateUserUseCase:
 
 
 class LoginUseCase:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(
+        self, user_repository: UserRepository, token_repository: TokenRepository
+    ):
         self._user_repository = user_repository
+        self._token_repository = token_repository
 
     async def __call__(self, login_model: LoginUser) -> Token:
         database_user = await self._user_repository.get_by_login(login_model.login)
@@ -69,6 +72,7 @@ class LoginUseCase:
             raise PasswordDoesNotMatchError(database_user.id)
         data = {'user_id': database_user.id.hex}
         refresh_token = create_refresh_jwt(data)
+        await self._token_repository.set(database_user.id.hex, refresh_token)
         access_token = create_access_jwt(data)
         return Token(
             access_token=access_token,
@@ -84,22 +88,24 @@ class RefreshTokenUseCase:
         self._user_repository = user_repository
         self._token_repository = token_repository
 
-    async def _is_token_blacklisted(self, token: str):
-        return (await self._token_repository.get(token)) is not None
+    async def _is_token_valid(self, token: str, user_id: str):
+        return (await self._token_repository.get(user_id)) == token
 
     async def _blacklist_token(self, token: str):
         await self._token_repository.blacklist(token)
 
     async def __call__(self, refresh_token: str) -> Token:
-        if await self._is_token_blacklisted(refresh_token):
-            raise TokenIsBlacklistedError()
         payload = decode_token(refresh_token)
         user_id = payload.get('user_id')
+        if not (await self._is_token_valid(refresh_token, user_id)):
+            raise TokenIsBlacklistedError()
         token_mode = payload.get('mode')
         if token_mode and token_mode == 'refresh_token':
-            await self._blacklist_token(refresh_token)
+            # await self._blacklist_token(refresh_token)
+            await self._token_repository.remove(user_id)
             data = {'user_id': user_id}
             access_token = create_access_jwt(data)
+            await self._token_repository.set(user_id, access_token)
             refresh_token = create_refresh_jwt(data)
             return Token(
                 access_token=access_token,

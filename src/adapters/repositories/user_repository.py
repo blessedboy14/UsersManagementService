@@ -37,7 +37,7 @@ class PostgreUserRepository(UserRepository):
             await self._session.merge(user_model)
             await self._session.commit()
         except Exception as e:
-            logger.error(f"Partial update failed with error: {e}")
+            logger.error(f'Partial update failed with error: {e}')
             await self._session.rollback()
             raise DatabaseError(e)
         return user
@@ -53,7 +53,7 @@ class PostgreUserRepository(UserRepository):
             ).first()
             return user
         except Exception as e:
-            logger.error(f"User creating failed with error: {e}")
+            logger.error(f'User creating failed with error: {e}')
             await self._session.rollback()
             raise DatabaseError(e)
 
@@ -85,7 +85,9 @@ class PostgreUserRepository(UserRepository):
         try:
             result_list = await self._session.scalars(query)
         except Exception as e:
-            logger.error(f"Users listing failed probably due to non-exist sort key: {e}")
+            logger.error(
+                f'Users listing failed probably due to non-exist sort key: {e}'
+            )
             raise NonExistSortKeyError(sort_by)
         return [self._to_dataclass(user) for user in result_list]
 
@@ -105,7 +107,9 @@ class PostgreUserRepository(UserRepository):
         try:
             result_list = await self._session.scalars(query)
         except Exception as e:
-            logger.error(f"Users listing failed probably due to non-exist sort key: {e}")
+            logger.error(
+                f'Users listing failed probably due to non-exist sort key: {e}'
+            )
             raise NonExistSortKeyError(sort_by)
         return [self._to_dataclass(user) for user in result_list]
 
@@ -117,7 +121,7 @@ class PostgreUserRepository(UserRepository):
                 )
             ).first()
         except Exception as e:
-            logger.error(f"Fetching by id failed with error: {e}")
+            logger.error(f'Fetching by id failed with error: {e}')
             raise InvalidIdError(user_id)
         return None if not user_model else self._to_dataclass(user_model)
 

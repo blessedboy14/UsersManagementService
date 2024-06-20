@@ -70,7 +70,7 @@ class AWSS3ImagesRepository(ImagesRepository):
 
         file_type = magic.from_buffer(content, mime=True)
         if file_type not in SUPPORTED_TYPES:
-            logger.error(f"Unsupported file type: {file_type}")
+            logger.error(f'Unsupported file type: {file_type}')
             raise InvalidFileTypeError(
                 f'Unsupported file type {file_type}. Supported types: {SUPPORTED_TYPES}'
             )
