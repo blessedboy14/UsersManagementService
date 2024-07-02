@@ -27,6 +27,7 @@ from src.use_cases.users_use_cases import (
     DeleteUserByIdUseCase,
     ListUsersUseCase,
     UploadImageUseCase,
+    FetchUsernamesUseCase,
 )
 
 
@@ -58,6 +59,12 @@ def get_login_use_case(
     token_repository: Annotated[TokenRepository, Depends(get_token_repository)],
 ) -> LoginUseCase:
     return LoginUseCase(users_repository, token_repository)
+
+
+def get_fetch_username_use_case(
+    users_repository: Annotated[UserRepository, Depends(get_users_repository)],
+) -> FetchUsernamesUseCase:
+    return FetchUsernamesUseCase(users_repository)
 
 
 def get_refresh_token_use_case(

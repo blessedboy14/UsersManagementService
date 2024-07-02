@@ -1,6 +1,6 @@
 from dataclasses import replace
 
-from src.domain.entities.user import User
+from src.domain.entities.user import User, UserFastInfo
 from src.ports.repositories.images_repository import ImagesRepository
 from src.ports.repositories.user_repository import UserRepository
 from src.use_cases.exceptions import (
@@ -8,7 +8,7 @@ from src.use_cases.exceptions import (
     MethodNotAllowedError,
     UserNotFoundError,
 )
-from src.drivers.rest.routers.schema import RoleEnum
+from src.drivers.rest.routers.schema import RoleEnum, UserId
 
 
 class PatchMeUseCase:
@@ -93,6 +93,18 @@ class ListUsersUseCase:
             return await self._user_repository.list_from_same_group(
                 str(current_user.group), **filters
             )
+
+
+class FetchUsernamesUseCase:
+    def __init__(self, user_repository: UserRepository):
+        self._user_repository = user_repository
+
+    async def __call__(
+        self, current_user: User, user_ids: [UserId]
+    ) -> list[UserFastInfo]:
+        converted_ids = [user.id.hex for user in user_ids]
+        usernames = await self._user_repository.fetch_usernames(converted_ids)
+        return usernames
 
 
 class UploadImageUseCase:

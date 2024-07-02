@@ -5,12 +5,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.adapters.exceptions import DatabaseError, InvalidIdError, NonExistSortKeyError
 from src.database.models import UserModel
-from src.domain.entities.user import User
+from src.domain.entities.user import User, UserId, UserFastInfo
 from src.ports.repositories.user_repository import UserRepository
 from src.adapters.config import logger
 
 
 class PostgreUserRepository(UserRepository):
+    async def fetch_usernames(self, user_ids: list[UserId]) -> list[UserFastInfo]:
+        users = (
+            await self._session.scalars(
+                select(UserModel).where(UserModel.id.in_(user_ids))
+            )
+        ).all()
+        usernames = []
+        for user in users:
+            usernames.append(UserFastInfo(user.id, user.username))
+        return usernames
+
     async def get_by_login(self, login: str) -> User | None:
         user = (
             await self._session.scalars(

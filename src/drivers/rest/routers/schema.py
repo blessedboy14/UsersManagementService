@@ -31,6 +31,14 @@ class AuthUser(BaseModel):
     }
 
 
+class UserId(BaseModel):
+    id: uuid.UUID = Field()
+
+
+class UserFastInfo(UserId):
+    username: str = Field(min_length=3, max_length=40)
+
+
 class ResponseUser(AuthUser):
     message: str = Field(default='user created')
 

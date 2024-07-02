@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import APIRouter, Depends, status, UploadFile, Query
 
 from src.domain.entities.user import User
@@ -11,6 +11,7 @@ from src.drivers.rest.dependencies import (
     get_upload_file_use_case,
     get_delete_by_id_use_case,
     get_auth_with_jwt_use_case,
+    get_fetch_username_use_case,
 )
 from src.use_cases.auth_use_cases import AuthUserWithJWTUseCase
 from src.use_cases.users_use_cases import (
@@ -21,12 +22,15 @@ from src.use_cases.users_use_cases import (
     ListUsersUseCase,
     UploadImageUseCase,
     DeleteUserByIdUseCase,
+    FetchUsernamesUseCase,
 )
 from src.drivers.rest.routers.schema import (
     UserPatch,
     UserBase,
     AdminPatch,
     OrderByEnum,
+    UserFastInfo,
+    UserId,
 )
 from src.common.security import oauth2_scheme
 
@@ -48,6 +52,20 @@ async def get_current_user(
 )
 async def read_users_me(cur_user: Annotated[User, Depends(get_current_user)]):
     return cur_user
+
+
+@router.post(
+    '/batch',
+    status_code=status.HTTP_200_OK,
+    response_model=List[UserFastInfo],
+    summary='Fetch usernames',
+)
+async def batch_usernames(
+    cur_user: Annotated[User, Depends(get_current_user)],
+    user_ids: List[UserId],
+    use_case: Annotated[FetchUsernamesUseCase, Depends(get_fetch_username_use_case)],
+):
+    return await use_case(cur_user, user_ids)
 
 
 @router.patch(

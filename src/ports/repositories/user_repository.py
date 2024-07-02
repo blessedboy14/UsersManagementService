@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.domain.entities.user import User
+from src.domain.entities.user import User, UserId, UserFastInfo
 
 
 class UserRepository(ABC):
@@ -23,6 +23,10 @@ class UserRepository(ABC):
 
     @abstractmethod
     async def delete(self, user_id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def fetch_usernames(self, user_ids: list[UserId]) -> list[UserFastInfo]:
         pass
 
     @abstractmethod

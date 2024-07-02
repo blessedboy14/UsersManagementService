@@ -34,6 +34,16 @@ class LoginUser:
 
 
 @dataclass
+class UserId:
+    id: UUID
+
+
+@dataclass
+class UserFastInfo(UserId):
+    username: str
+
+
+@dataclass
 class AuthUser:
     email: str
     password: str
