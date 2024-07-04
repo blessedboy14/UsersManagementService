@@ -41,6 +41,7 @@ class UserId:
 @dataclass
 class UserFastInfo(UserId):
     username: str
+    image_url: str
 
 
 @dataclass

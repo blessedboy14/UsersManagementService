@@ -19,7 +19,7 @@ class PostgreUserRepository(UserRepository):
         ).all()
         usernames = []
         for user in users:
-            usernames.append(UserFastInfo(user.id, user.username))
+            usernames.append(UserFastInfo(user.id, user.username, user.image))
         return usernames
 
     async def get_by_login(self, login: str) -> User | None:

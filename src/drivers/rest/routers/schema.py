@@ -37,6 +37,7 @@ class UserId(BaseModel):
 
 class UserFastInfo(UserId):
     username: str = Field(min_length=3, max_length=40)
+    image_url: str
 
 
 class ResponseUser(AuthUser):
