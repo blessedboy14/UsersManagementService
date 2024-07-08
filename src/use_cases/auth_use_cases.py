@@ -101,12 +101,11 @@ class RefreshTokenUseCase:
             raise TokenIsBlacklistedError()
         token_mode = payload.get('mode')
         if token_mode and token_mode == 'refresh_token':
-            # await self._blacklist_token(refresh_token)
             await self._token_repository.remove(user_id)
             data = {'user_id': user_id}
             access_token = create_access_jwt(data)
-            await self._token_repository.set(user_id, access_token)
             refresh_token = create_refresh_jwt(data)
+            await self._token_repository.set(user_id, refresh_token)
             return Token(
                 access_token=access_token,
                 refresh_token=refresh_token,
