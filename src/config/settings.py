@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     test_db: str = 'test_management_service'
     secret_key: str = os.getenv('SECRET_KEY') if os.getenv('SECRET_KEY') else '<KEY>'
     algorithm: str = os.getenv('ALGORITHM') if os.getenv('ALGORITHM') else 'HS256'
-    access_exp: int = os.getenv('ACCESS_EXP') if os.getenv('ACCESS_EXP') else 1
+    access_exp: int = os.getenv('ACCESS_EXP') if os.getenv('ACCESS_EXP') else 60
     refresh_exp: int = os.getenv('REFRESH_EXP') if os.getenv('REFRESH_EXP') else 31
 
 
