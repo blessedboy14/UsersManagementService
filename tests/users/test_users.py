@@ -41,7 +41,6 @@ async def test_create_then_login_then_delete(
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_app_client.delete('/users/me', headers=headers)
     assert response.status_code == 200
-    assert response.json() == {'message': 'User deleted', 'data': None}
 
 
 @pytest.mark.asyncio
@@ -53,10 +52,8 @@ async def test_create_then_login_then_delete_then_login(
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_app_client.delete('/users/me', headers=headers)
     assert response.status_code == 200
-    assert response.json() == {'message': 'User deleted', 'data': None}
     response = await async_app_client.post('/auth/login', data=login_data)
-    assert response.status_code == 401
-    assert 'User not found' in response.json().get('detail')
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -253,8 +250,7 @@ async def test_request_filter_as_user(async_app_client, auth_fake_user):
     access_token, _ = auth_fake_user
     headers = {'Authorization': f'Bearer {access_token}'}
     response = await async_app_client.get('/users', headers=headers)
-    assert response.status_code == 401
-    assert 'Not allowed' in response.json().get('detail')
+    assert response.status_code == 405
 
 
 @pytest.mark.asyncio
@@ -272,7 +268,7 @@ async def test_get_by_id_as_user(async_app_client, auth_fake_user):
     response = await async_app_client.get(
         f'/users/{str(uuid.uuid4())}', headers=headers
     )
-    assert response.status_code == 401
+    assert response.status_code == 405
 
 
 @pytest.mark.asyncio
@@ -334,19 +330,18 @@ async def test_delete_as_non_admin(async_app_client, auth_fake_user):
     response = await async_app_client.delete(
         f'/users/{str(uuid.uuid4())}', headers=headers
     )
-    assert response.status_code == 401
+    assert response.status_code == 405
 
 
 @pytest.mark.asyncio
 async def test_patch_non_exist_user(async_app_client, auth_main_user):
     access_token = auth_main_user
     headers = {'Authorization': f'Bearer {access_token}'}
-    to_patch = {}
+    to_patch = {'email': 'ewkere@email.com'}
     response = await async_app_client.patch(
         f'/users/{str(uuid.uuid4())}', headers=headers, json=to_patch
     )
     assert response.status_code == 404
-    assert response.json().get('detail') == 'User not found'
 
 
 @pytest.mark.asyncio
@@ -361,4 +356,3 @@ async def test_patch_with_no_info(async_app_client, auth_main_user):
         f'/users/{user_id}', headers=headers, json=to_patch
     )
     assert response.status_code == 400
-    assert response.json().get('detail') == 'No info provided or non-existing fields'

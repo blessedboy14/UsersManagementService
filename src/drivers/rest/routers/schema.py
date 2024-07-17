@@ -1,23 +1,96 @@
 import uuid
 import datetime
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
-from pydantic_extra_types.phone_numbers import PhoneNumber
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, model_validator
+
+from src.domain.entities.user import RoleEnum, AuthUser as AuthUserModel
 
 
-class RoleEnum(str, Enum):
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-    USER = 'user'
+PhoneNumber.phone_format = 'E164'
 
 
-class Group(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class AuthUser(BaseModel):
+    email: EmailStr = Field()
+    username: str = Field(min_length=3, max_length=40)
+    phone: PhoneNumber = Field()
 
-    id: uuid.UUID
-    name: str
-    created: datetime.datetime
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'email': 'your@email.com',
+                    'username': 'your_username',
+                    'phone': '+48221234567',
+                    'password': 'your_password',
+                }
+            ]
+        }
+    }
+
+
+class UserId(BaseModel):
+    id: uuid.UUID = Field()
+
+
+class UserFastInfo(UserId):
+    username: str = Field(min_length=3, max_length=40)
+    image_url: str
+
+
+class ResponseUser(AuthUser):
+    message: str = Field(default='user created')
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr = Field(min_length=3, max_length=128, examples=['your@email.com'])
+
+
+class LoginUser(BaseModel):
+    login: str = Field(
+        min_length=3, max_length=64, examples=['<EMAIL>', '<USERNAME>', '+48221234567']
+    )
+    password: str = Field(min_length=8, max_length=128, examples=['your_password'])
+
+
+class UserIn(AuthUser):
+    model_config = ConfigDict(regex_engine='python-re')
+    password: str = Field(
+        pattern=r'[a-z0-9@#$%^&\'~\"+=_]{8,}', min_length=8, max_length=128
+    )
+
+    def to_entity(self) -> AuthUserModel:
+        return AuthUserModel(
+            email=self.email,
+            username=self.username,
+            phone_number=str(self.phone),
+            password=self.password,
+        )
+
+
+class UserInDB(AuthUser):
+    hashed_password: str
+
+
+class TokenSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+    type: str
+
+
+class ResetPasswordMessage(BaseModel):
+    user_id: uuid.UUID
+    subject: str
+    body: str
+    email: EmailStr
+    published_at: datetime.datetime
+
+
+class ResetPasswordResponse(BaseModel):
+    message: str
+    email: str
 
 
 class UserBase(BaseModel):
@@ -40,10 +113,6 @@ class UserBase(BaseModel):
     def validate_time(self):
         self.modified_at = datetime.datetime.now()
         return self
-
-
-class User(UserBase):
-    hashed_password: str
 
 
 class UserPatch(BaseModel):

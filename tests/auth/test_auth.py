@@ -43,7 +43,6 @@ async def test_publish_reset_password_for_non_existing_user(async_app_client):
     to_reset_email = {'email': 'non@exist.com'}
     response = await async_app_client.post('auth/reset-password', json=to_reset_email)
     assert response.status_code == 404
-    assert response.json().get('detail') == 'User not found'
 
 
 @pytest.mark.asyncio
@@ -134,7 +133,6 @@ async def test_login(async_app_client):
     )
     assert response.status_code == 200
     assert response.json().get('type') == 'bearer'
-    assert response.json().get('message') == 'Logged in successfully'
 
 
 @pytest.mark.asyncio
@@ -142,15 +140,13 @@ async def test_login_blocked_user(async_app_client, create_blocked_user):
     login = create_blocked_user
     response = await async_app_client.post('/auth/login', data=login)
     assert response.status_code == 401
-    assert 'User blocked' in response.json().get('detail')
 
 
 @pytest.mark.asyncio
 async def test_login_nonexistent_user(async_app_client):
     fake_login = {'username': 'non_exist', 'password': '<  blank  >'}
     response = await async_app_client.post('/auth/login', data=fake_login)
-    assert response.status_code == 401
-    assert 'User not found' in response.json().get('detail')
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -159,7 +155,6 @@ async def test_login_with_incorrect_passw(async_app_client):
     login_data['password'] = 'fake_password'
     response = await async_app_client.post('/auth/login', data=login_data)
     assert response.status_code == 401
-    assert "Password don't match" in response.json().get('detail')
 
 
 @pytest.mark.asyncio

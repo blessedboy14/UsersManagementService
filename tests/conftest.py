@@ -6,7 +6,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy import insert
 from PIL import Image
 
-from src.database.models import UserDB, Group
+from src.database.models import UserModel, Group
 from src.database.database import get_session, Base
 from src.main import app
 from tests.utils.database_setup import (
@@ -57,7 +57,7 @@ async def async_setup_and_tear_down(request):
                 {'name': 'testing', 'id': 'd9a83fd7-c45f-4c78-84eb-0922d6a5eec0'}
             )
         )
-        await conn.execute(insert(UserDB).values(**base_user))
+        await conn.execute(insert(UserModel).values(**base_user))
     yield
 
     async with test_session_maker.get_engine().begin() as conn:

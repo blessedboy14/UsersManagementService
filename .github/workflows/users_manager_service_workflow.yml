@@ -55,7 +55,7 @@ jobs:
       - name: Wait until rabbitmq is up
         run: |
           sleep 20s
-      - name: Test with pytest and show coverage
+      - name: Test with pytest
         run: |
           docker exec backend pytest
 

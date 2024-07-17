@@ -4,9 +4,9 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 
-from src.auth.config import logger
+from src.common.config import logger
 from src.config.settings import settings
-from src.auth.schemas import UserIn, UserInDB
+from src.drivers.rest.routers.schema import UserIn, UserInDB
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm

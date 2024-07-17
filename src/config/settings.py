@@ -58,3 +58,11 @@ string_url = f'{db_driver}://{db_username}:{db_password}@{db_url}/{db_schema}'
 # uploading files settings
 MAX_FILE_SIZE = 1024 * 1024 * 20
 SUPPORTED_TYPES = {'image/png': 'png', 'image/jpeg': 'jpg'}
+
+rabbit_config = {
+    'host': settings.rabbit_host,
+    'port': '5672',
+    'q_name': settings.rabbit_queue,
+    'login': settings.username,
+    'password': settings.passw,
+}
