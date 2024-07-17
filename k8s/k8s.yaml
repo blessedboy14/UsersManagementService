@@ -27,7 +27,7 @@ spec:
           value: $(POSTGRES_DB)
         envFrom:
           - secretRef:
-              name: usr_envs
+              name: usr-envs
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
@@ -109,7 +109,7 @@ spec:
           mountPath: /data
         envFrom:
           - secretRef:
-              name: usr_envs
+              name: usr-envs
       volumes:
       - name: redis-data
         hostPath:
@@ -147,7 +147,7 @@ spec:
           value: -rabbit disk_free_limit 2147483648
         envFrom:
           - secretRef:
-              name: usr_envs
+              name: usr-envs
         volumeMounts:
         - name: rabbitmq-data
           mountPath: /var/lib/rabbitmq
@@ -180,7 +180,7 @@ spec:
         - containerPort: 8080
         envFrom:
           - secretRef:
-              name: usr_envs
+              name: usr-envs
         imagePullPolicy: Never
 
 ---
@@ -213,7 +213,7 @@ spec:
           value: $(TEST_POSTGRES_DB)
         envFrom:
           - secretRef:
-              name: usr_envs
+              name: usr-envs
         volumeMounts:
         - name: test-postgres-data
           mountPath: /var/lib/postgresql/data
