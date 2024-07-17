@@ -19,9 +19,11 @@ services:
     environment:
       - DEBUG=${DEBUG:-0}
       - DISABLE_CORS_CHECKS=1
+      - LAMBDA_EXECUTOR=docker-reuse
       - EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:5173
     volumes:
       - "/home/docker_images/localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
   cache:
     image: redis
     ports:

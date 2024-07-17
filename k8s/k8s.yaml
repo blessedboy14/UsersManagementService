@@ -1,0 +1,223 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: $(NAME)
+        - name: POSTGRES_PASSWORD
+          value: $(PASS)
+        - name: POSTGRES_DB
+          value: $(POSTGRES_DB)
+        envFrom:
+          - secretRef:
+              name: usr_envs
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        hostPath:
+          path: /home/docker_images/postgres
+          type: DirectoryOrCreate
+
+---
+# LocalStack
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+      - name: localstack
+        image: localstack/localstack
+        ports:
+        - containerPort: 4566
+        env:
+        - name: DEBUG
+          value: "0"
+        - name: DISABLE_CORS_CHECKS
+          value: "1"
+        - name: LAMBDA_EXECUTOR
+          value: docker-reuse
+        - name: EXTRA_CORS_ALLOWED_ORIGINS
+          value: http://localhost:5173
+        volumeMounts:
+        - name: localstack-data
+          mountPath: /var/lib/localstack
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: localstack-data
+        hostPath:
+          path: /home/docker_images/localstack
+          type: DirectoryOrCreate
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+
+---
+# Redis Cache
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--save", "30", "1", "--loglevel", "warning", "--requirepass", "$(PASS)"]
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        envFrom:
+          - secretRef:
+              name: usr_envs
+      volumes:
+      - name: redis-data
+        hostPath:
+          path: /home/docker_images/redis
+          type: DirectoryOrCreate
+
+---
+# RabbitMQ
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.10.7-management
+        ports:
+        - containerPort: 15672
+        - containerPort: 5672
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: $(NAME)
+        - name: RABBITMQ_DEFAULT_PASS
+          value: $(PASS)
+        - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+          value: -rabbit disk_free_limit 2147483648
+        envFrom:
+          - secretRef:
+              name: usr_envs
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+      volumes:
+      - name: rabbitmq-data
+        hostPath:
+          path: /home/docker_images/rabbitmq
+          type: DirectoryOrCreate
+
+---
+# Backend Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: backend:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+          - secretRef:
+              name: usr_envs
+
+---
+# Test Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-postgres
+  template:
+    metadata:
+      labels:
+        app: test-postgres
+    spec:
+      containers:
+      - name: test-postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: $(NAME)
+        - name: POSTGRES_PASSWORD
+          value: $(PASS)
+        - name: POSTGRES_DB
+          value: $(TEST_POSTGRES_DB)
+        envFrom:
+          - secretRef:
+              name: usr_envs
+        volumeMounts:
+        - name: test-postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: test-postgres-data
+        hostPath:
+          path: /home/docker_images/test_postgres
+          type: DirectoryOrCreate
